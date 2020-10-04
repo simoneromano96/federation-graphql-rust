@@ -1,8 +1,8 @@
-use async_graphql::Object;
 use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
 use wither::bson::{doc, oid::ObjectId};
 use wither::prelude::*;
+use async_graphql::{Context, ID, Object, Result};
 
 /// User representation
 #[derive(Debug, Model, Serialize, Deserialize)]

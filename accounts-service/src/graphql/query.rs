@@ -6,6 +6,7 @@ pub struct Query;
 
 #[Object(extends)]
 impl Query {
+    /// Get current user info
     async fn me(&self, ctx: &Context<'_>) -> Result<UserInfo> {
         // let user = ctx.data::<User>();
         if let Ok(user) = ctx.data::<User>() {
@@ -14,14 +15,7 @@ impl Query {
             Err("Not logged in".into())
         }
     }
-    
+
     #[graphql(entity)]
-    async fn find_user_by_id(&self, id: ID) -> UserInfo {
-        let username = if id == "1234" {
-            "Me".to_string()
-        } else {
-            format!("User {:?}", id)
-        };
-        UserInfo { id: None, username }
-    }
+    async fn echo(&self, username: String) -> UserInfo { UserInfo { id: None, username } }
 }
