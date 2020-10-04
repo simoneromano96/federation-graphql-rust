@@ -1,106 +1,84 @@
-use actix_redis::RedisSession;
-use actix_session::Session;
-use actix_web::{cookie, middleware, web, App, HttpResponse, HttpServer};
-use actix_web::{guard, HttpRequest};
-use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{EmptyMutation, Object, Schema, SimpleObject};
-use async_graphql::{EmptySubscription, ID, Context};
-use async_graphql_actix_web::{Request, Response};
+#![feature(associated_type_bounds)]
 
-#[derive(SimpleObject)]
-struct Product {
-    upc: String,
-    name: String,
-    price: i32,
+mod graphql;
+mod models;
+
+// use crate::graphql::coffee::{CoffeeSchema, MutationRoot, QueryRoot, SubscriptionRoot};
+use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Result, guard, web::{self, post}};
+// use actix_cors::Cors;
+// use actix_web_actors::ws;
+use async_graphql::{EmptyMutation, EmptySubscription, Schema, extensions::ApolloTracing, http::{playground_source, GraphQLPlaygroundConfig}};
+use async_graphql_actix_web::{WSSubscription};
+// use std::sync::Arc;
+use graphql::{Mutation, Query, index};
+use models::Coffee;
+use wither::prelude::*;
+
+/*
+async fn index(schema: web::Data<CoffeeSchema>, req: GQLRequest) -> GQLResponse {
+    let inner = req.into_inner();
+    // let inner: QueryBuilder = req.into_inner();
+    // inner.execute(&schema).await.into()
 }
 
-struct Query;
-
-#[Object(extends)]
-impl Query {
-    async fn top_products<'a>(&self, ctx: &'a Context<'_>) -> &'a Vec<Product> {
-        ctx.data_unchecked::<Vec<Product>>()
-    }
-
-    #[graphql(entity)]
-    async fn find_product_by_upc<'a>(
-        &self,
-        ctx: &'a Context<'_>,
-        upc: String,
-    ) -> Option<&'a Product> {
-        let hats = ctx.data_unchecked::<Vec<Product>>();
-        hats.iter().find(|product| product.upc == upc)
-    }
-}
-
-async fn index(
-    schema: web::Data<Schema<Query, EmptyMutation, EmptySubscription>>,
-    req: HttpRequest,
-    gql_request: Request,
-    session: Session,
-) -> Response {
-    let user_id: Option<i64> = session.get("user_id").unwrap_or(None);
-
-    println!("User ID: {:?}", user_id);
-
-    schema.execute(gql_request.into_inner()).await.into()
-}
-
-async fn gql_playgound() -> HttpResponse {
-    HttpResponse::Ok()
+async fn index_playground() -> Result<HttpResponse> {
+    Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(playground_source(
-            GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
-        ))
+            GraphQLPlaygroundConfig::new("/graphql").subscription_endpoint("/graphql"),
+        )))
+}
+
+async fn index_ws(
+    schema: web::Data<CoffeeSchema>,
+    req: HttpRequest,
+    payload: web::Payload,
+) -> Result<HttpResponse> {
+    ws::start_with_protocols(WSSubscription::new(&schema), &["graphql-ws"], &req, payload)
+}
+*/
+
+async fn init() -> wither::mongodb::Database {
+    use wither::mongodb::Client;
+
+    // Connect to the database.
+    let products_database =
+        Client::with_uri_str("mongodb://root:example@localhost:27017/admin")
+            .await
+            .expect("Cannot connect to the db")
+            .database("products-service");
+
+    Coffee::sync(&products_database)
+        .await
+        .expect("Failed syncing indexes");
+
+    products_database
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let hats = vec![
-        Product {
-            upc: "top-1".to_string(),
-            name: "Trilby".to_string(),
-            price: 11,
-        },
-        Product {
-            upc: "top-2".to_string(),
-            name: "Fedora".to_string(),
-            price: 22,
-        },
-        Product {
-            upc: "top-3".to_string(),
-            name: "Boater".to_string(),
-            price: 33,
-        },
-    ];
+    let db = init().await;
 
-    let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
-        .data(hats)
+    let schema = Schema::build(Query, Mutation, EmptySubscription)
+        // .extension(|| ApolloTracing::default())
+        .data(db)
         .finish();
-
-    println!("Playground: http://127.0.0.1:4001");
 
     HttpServer::new(move || {
         App::new()
-            // enable logger
-            .wrap(middleware::Logger::default())
-            // cookie session middleware
-            .wrap(
-                RedisSession::new("127.0.0.1:6379", b"N7WoK3mG7lSb0CpK8UhAabUZNi27n5ub")
-                    // Don't allow the cookie to be accessed from javascript
-                    .cookie_http_only(true)
-                    // allow the cookie only from the current domain
-                    .cookie_same_site(cookie::SameSite::Lax),
-            )
             .data(schema.clone())
-            .service(web::resource("/").guard(guard::Post()).to(index))
-            // .service(
-            //     web::resource("/")
-            //         .guard(guard::Get())
-            //         .guard(guard::Header("upgrade", "websocket"))
-            //         .to(index_ws),
-            // )
-            .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
+            // .wrap(Cors::default())
+            .route("/graphql", post().to(index))
+        /*
+        .service(web::resource("/graphql").guard(guard::Post()).to(index))
+        .service(
+            web::resource("/graphql")
+                .guard(guard::Get())
+                .guard(guard::Header("upgrade", "websocket"))
+                .to(index_ws),
+        )
+        .service(web::resource("/playground").guard(guard::Get()).to(index_playground))
+        */
     })
     .bind("0.0.0.0:4002")?
     .run()

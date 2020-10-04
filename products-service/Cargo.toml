@@ -15,8 +15,12 @@ actix-session = "^0.4.0"
 actix-redis = "^0.9.1"
 # Serialization/Deserialization
 serde = "^1.0.116"
+# Mongo DB ODM (Should be merged soon)
+wither = { git = "https://github.com/simoneromano96/wither.git" }
 # GraphQL implementation
-async-graphql = "^2.0.0-alpha.23"
+async-graphql = { version = "^2.0.0-alpha.23", features = ["apollo_tracing"] }
 # GraphQL Actix Adapter
 async-graphql-actix-web = "2.0.0-alpha.23"
-
+# Type-safe URLs
+url = "2.1.1"
+futures = "0.3.5"
