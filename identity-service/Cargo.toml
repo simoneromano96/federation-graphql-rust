@@ -15,3 +15,12 @@ actix-session = "^0.4.0"
 actix-redis = "^0.9.1"
 # Serialization/Deserialization
 serde = "^1.0.116"
+# Argon password hashing
+# argonautica = "0.2.0"
+rust-argon2 = "0.8"
+# Cryptographically Secure Randomness
+rand = "0.7.3"
+# Evaluate some stuff only once
+# lazy_static = "1.4.0"
+# Mongo DB ODM (Should be merged soon)
+wither = { git = "https://github.com/simoneromano96/wither.git" }

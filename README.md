@@ -1,6 +1,14 @@
-# federation-graphql-rust
+# Complete GraphQL with Apollo Federation services in Rust
 
-Technologies used:
+## Services
+
+The services are:
+
+* accounts
+
+* products
+
+* reviews
 
 ## Rust Identity & Access Management
 
@@ -22,7 +30,7 @@ Routes details:
 
 * /is-authorized must say if a user (can also be a guest) can do something to some resources
 
-### Used libraries
+### Libraries
 
 * actix-web
 
@@ -34,7 +42,11 @@ Routes details:
 
 * wither
 
+* paperclip
+
 ## Rust GraphQL services
+
+### Libraries
 
 * actix-web
 
@@ -50,17 +62,32 @@ Routes details:
 
 ## Node GraphQL gateway
 
+### Libraries
+
 * fastify
 
 * mercurius 
 
-## Services
+## Decisions and issues
 
-The services are:
+I'd like to have a only GraphQL architecture but there is a problem: I can't handle stateful sessions in graphql resolvers; this would force me to handle sessions in a stateless way, which I personally don't like, cookie sessions are the most secure way to handle the user identity.
 
-* accounts
+I could use Paseto to generate some tokens but this don't solve the main problem of where I should store them.
 
-* products
+So the Identity/Accounts Service (they should be merged) exposes both "REST" (I wouldn't call them REST TBH) and GraphQL API standards.
 
-* reviews
+I believe that the tokens are as secure as where they are stored, so having them in the local storage or session storage in a untrusted client is bad, while cookies can be blocked from reading from JS and are set automatically and they can be invalidated (with a real logout).
 
+Tokens are good/perfect for machine-to-machine communication where the parties are trusted.
+
+When creating an IAM service I believe the hardest decisions are about the DB and the hashing algorithm.
+
+I choose Mongo mostly because it is "cluster-able" easily, this will improve both the performance and the safety of the data at the cost of having some un-synced data, this is not a big deal though because I don't expect a lot of updates on the user model.
+
+Another thing I like about mongo for is how easily I can add/remove data from the collection being a "schema-less" database, I do expect a lot of changes in the User collection as my ecosystem grows.
+
+I know about cockroachDB which is a postgres-compatible scalable DB but for the preceding reason I'm not sure if it is a good choice, it will force me to handle migrations.
+
+Until now I've talked about Authentication mostly, now I should solve the problem of Authorization, I believe that the best Authorization mechanism is the RBAC (Role-Based access control) which defines some roles and actions where each role can execute some determinate actions. 
+
+In my services I have the session, so I can get the current User before resolving the Graph query, but I'm still not sure on how to handle all this, I'd like to keep everything in my IAM service or I could also detatch it with an Access Control and Permission Management service, I'm not sure if detatching is a good idea right now, mostly because the only endpoint I can think of is the "/is-authorized" endpoint, that expects the user role and the action and gives back if he can execute the action, but this means that there will be an added latency that I'm not sure I like, if I could cache the roles and actions tough it might be ok.
