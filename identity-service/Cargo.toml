@@ -24,3 +24,5 @@ rand = "0.7.3"
 # lazy_static = "1.4.0"
 # Mongo DB ODM (Should be merged soon)
 wither = { git = "https://github.com/simoneromano96/wither.git" }
+# OpenAPI specification with Actix
+paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features = ["actix3-nightly", "actix-session"] }
