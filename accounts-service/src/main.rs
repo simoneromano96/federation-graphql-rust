@@ -29,7 +29,10 @@ async fn main() -> std::io::Result<()> {
         .expect("Failed syncing indexes");
 
     let graphql_schema: IdentityServiceSchema =
-        Schema::new(Query, EmptyMutation, EmptySubscription);
+        Schema::build(Query, EmptyMutation, EmptySubscription)
+        // .extension(|| ApolloTracing::default())
+        .data(identity_database.clone())
+        .finish();
 
     // let db = std::sync::Arc::new(identity_database);
 
