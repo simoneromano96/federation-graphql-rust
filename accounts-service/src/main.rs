@@ -1,67 +1,40 @@
+mod authentication;
+// mod authorization;
+mod graphql;
+mod models;
+
 use actix_redis::RedisSession;
-use actix_session::Session;
-use actix_web::{cookie, middleware, web, App, HttpResponse, HttpServer};
-use actix_web::{guard, HttpRequest};
-use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{EmptyMutation, Object, Schema, SimpleObject};
-use async_graphql::{EmptySubscription, ID};
-use async_graphql_actix_web::{Request, Response};
-
-#[derive(SimpleObject)]
-struct User {
-    id: ID,
-    username: String,
-}
-
-struct Query;
-
-#[Object(extends)]
-impl Query {
-    async fn me(&self) -> User {
-        User {
-            id: "1234".into(),
-            username: "Me".to_string(),
-        }
-    }
-
-    #[graphql(entity)]
-    async fn find_user_by_id(&self, id: ID) -> User {
-        let username = if id == "1234" {
-            "Me".to_string()
-        } else {
-            format!("User {:?}", id)
-        };
-        User { id, username }
-    }
-}
-
-async fn index(
-    schema: web::Data<Schema<Query, EmptyMutation, EmptySubscription>>,
-    req: HttpRequest,
-    gql_request: Request,
-    session: Session,
-) -> Response {
-    let user_id: Option<i64> = session.get("user_id").unwrap_or(None);
-
-    println!("User ID: {:?}", user_id);
-
-    schema.execute(gql_request.into_inner()).await.into()
-}
-
-async fn gql_playgound() -> HttpResponse {
-    HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(playground_source(
-            GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
-        ))
-}
+use actix_web::{cookie, middleware, App, HttpServer};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use authentication::routes::*;
+use graphql::{index, IdentityServiceSchema, Query};
+use models::User;
+use paperclip::actix::{
+    web::{get, post, scope},
+    OpenApiExt,
+};
+use wither::mongodb::Client;
+use wither::prelude::*;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let schema: Schema<Query, EmptyMutation, EmptySubscription> =
+    // Connect & sync indexes.
+    let identity_database = Client::with_uri_str("mongodb://root:example@127.0.0.1:27017/")
+        .await
+        .expect("Cannot connect to the db")
+        .database("identity-service");
+
+    User::sync(&identity_database)
+        .await
+        .expect("Failed syncing indexes");
+
+    let graphql_schema: IdentityServiceSchema =
         Schema::new(Query, EmptyMutation, EmptySubscription);
 
-    println!("Playground: http://127.0.0.1:4001");
+    // let db = std::sync::Arc::new(identity_database);
+
+    // std::env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
+    // env_logger::init();
 
     HttpServer::new(move || {
         App::new()
@@ -75,15 +48,29 @@ async fn main() -> std::io::Result<()> {
                     // allow the cookie only from the current domain
                     .cookie_same_site(cookie::SameSite::Lax),
             )
-            .data(schema.clone())
-            .service(web::resource("/").guard(guard::Post()).to(index))
-            // .service(
-            //     web::resource("/")
-            //         .guard(guard::Get())
-            //         .guard(guard::Header("upgrade", "websocket"))
-            //         .to(index_ws),
-            // )
-            .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
+            .data(identity_database.clone())
+            .data(graphql_schema.clone())
+            .route("/graphql", actix_web::web::post().to(index))
+            // Record services and routes from this line.
+            .wrap_api()
+            .service(
+                scope("/api")
+                .service(
+                    scope("/v1")
+                        .route("/signup", post().to(signup))
+                        .route("/login", post().to(login))
+                        .route("/user-info", get().to(user_info))
+                        .route("/logout", get().to(logout))
+                        // .service(signup)
+                        // .service(login)
+                        // .service(user_info)
+                        // .service(logout),
+                ),
+            )
+            // Mount the JSON spec at this path.
+            .with_json_spec_at("/openapi")
+            // Build the app
+            .build()
     })
     .bind("0.0.0.0:4001")?
     .run()
