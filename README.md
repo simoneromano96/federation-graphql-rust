@@ -24,9 +24,9 @@ Routes details:
 
 * /login must accept user credentials and must set a session cookie
 
-* /logout must destroy the user session
-
 * /user-info must give the user identity
+
+* /logout must destroy the user session
 
 * /is-authorized must say if a user (can also be a guest) can do something to some resources
 

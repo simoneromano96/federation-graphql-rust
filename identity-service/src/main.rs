@@ -3,7 +3,9 @@ mod authentication;
 use actix_redis::RedisSession;
 use actix_session::Session;
 use actix_web::{
-    cookie, get, middleware, post, web, App, Error, HttpResponse, HttpServer, Responder,
+    cookie, get, middleware, post,
+    web::{self, scope},
+    App, Error, HttpResponse, HttpServer, Responder,
 };
 use argon2::{self, Config};
 use serde::{Deserialize, Serialize};
@@ -128,44 +130,17 @@ async fn user_info(
     }
 }
 
-/*
-impl User {
-    fn authenticate(credentials: Credentials) -> Result<Self, HttpResponse> {
-        if &credentials.password != "hunter2" {
-            return Err(HttpResponse::Unauthorized().json("Unauthorized"));
-        }
+#[get("/logout")]
+async fn logout(session: Session) -> HttpResponse {
+    let maybe_user: Option<User> = session.get("user").unwrap();
 
-        Ok(User {
-            id: 42,
-            username: credentials.username,
-            password: credentials.password,
-        })
+    if let Some(_) = maybe_user {
+        session.clear();
+        HttpResponse::Ok().body("Logged out")
+    } else {
+        HttpResponse::BadRequest().body("Already logged out")
     }
 }
-
-pub fn validate_session(session: &Session) -> Result<i64, HttpResponse> {
-    let user_id: Option<i64> = session.get("user_id").unwrap_or(None);
-
-    match user_id {
-        Some(id) => {
-            // keep the user's session alive
-            session.renew();
-            Ok(id)
-        }
-        None => Err(HttpResponse::Unauthorized().json("Unauthorized")),
-    }
-}
-
-/// some protected resource
-async fn secret(session: Session) -> Result<impl Responder, Error> {
-    // only allow access to this resource if the user has an active session
-    validate_session(&session)?;
-
-    let id: Option<i64> = session.get("user_id")?;
-
-    Ok(format!("User ID: {:?}", id))
-}
-*/
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -197,9 +172,15 @@ async fn main() -> std::io::Result<()> {
                     // allow the cookie only from the current domain
                     .cookie_same_site(cookie::SameSite::Lax),
             )
-            .service(signup)
-            .service(login)
-            .service(user_info)
+            .service(
+                scope("/api").service(
+                    scope("/v1")
+                        .service(signup)
+                        .service(login)
+                        .service(user_info)
+                        .service(logout),
+                ),
+            )
     })
     .bind("0.0.0.0:3000")?
     .run()
