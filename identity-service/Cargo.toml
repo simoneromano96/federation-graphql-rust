@@ -26,3 +26,7 @@ rand = "0.7.3"
 wither = { git = "https://github.com/simoneromano96/wither.git" }
 # OpenAPI specification with Actix
 paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features = ["actix3-nightly", "actix-session"] }
+# GraphQL implementation
+async-graphql = "^2.0.0-alpha.23"
+# GraphQL Actix Adapter
+async-graphql-actix-web = "2.0.0-alpha.23"

@@ -1,17 +1,20 @@
 mod authentication;
 // mod authorization;
+mod graphql;
 mod models;
 
 use actix_redis::RedisSession;
 use actix_web::{cookie, middleware, App, HttpServer};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use authentication::routes::*;
+use graphql::{index, IdentityServiceSchema, Query};
+use models::User;
 use paperclip::actix::{
     web::{get, post, scope},
     OpenApiExt,
 };
-use wither::mongodb::{Client};
+use wither::mongodb::Client;
 use wither::prelude::*;
-use models::User;
-use authentication::routes::*;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -25,6 +28,9 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("Failed syncing indexes");
 
+    let graphql_schema: IdentityServiceSchema =
+        Schema::new(Query, EmptyMutation, EmptySubscription);
+
     // let db = std::sync::Arc::new(identity_database);
 
     // std::env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
@@ -32,7 +38,6 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .data(identity_database.clone())
             // enable logger
             .wrap(middleware::Logger::default())
             // cookie session middleware
@@ -43,10 +48,14 @@ async fn main() -> std::io::Result<()> {
                     // allow the cookie only from the current domain
                     .cookie_same_site(cookie::SameSite::Lax),
             )
+            .data(identity_database.clone())
+            .data(graphql_schema.clone())
+            .route("/graphql", actix_web::web::post().to(index))
             // Record services and routes from this line.
             .wrap_api()
             .service(
-                scope("/api").service(
+                scope("/api")
+                .service(
                     scope("/v1")
                         .route("/signup", post().to(signup))
                         .route("/login", post().to(login))
@@ -63,7 +72,7 @@ async fn main() -> std::io::Result<()> {
             // Build the app
             .build()
     })
-    .bind("0.0.0.0:3000")?
+    .bind("0.0.0.0:4001")?
     .run()
     .await
 }

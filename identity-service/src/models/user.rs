@@ -1,12 +1,11 @@
-use paperclip::actix::{
-    Apiv2Schema,
-};
+use async_graphql::Object;
+use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
 use wither::bson::{doc, oid::ObjectId};
 use wither::prelude::*;
 
 /// User representation
-#[derive(Debug, Model, Serialize, Deserialize, Apiv2Schema)]
+#[derive(Debug, Model, Serialize, Deserialize)]
 #[model(index(keys = r#"doc!{"username": 1}"#, options = r#"doc!{"unique": true}"#))]
 pub struct User {
     /// The ID of the model.
@@ -20,6 +19,15 @@ pub struct User {
     // email: String,
 }
 
+impl User {
+    pub fn to_user_info(&self) -> UserInfo {
+        UserInfo {
+            id: self.id.clone(),
+            username: self.username.clone(),
+        }
+    }
+}
+
 /// Available User info
 #[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 pub struct UserInfo {
@@ -30,12 +38,18 @@ pub struct UserInfo {
     pub username: String,
 }
 
-impl User {
-    pub fn to_user_info(&self) -> UserInfo {
-        UserInfo {
-            id: self.id.clone(),
-            username: self.username.clone(),
+#[Object]
+impl UserInfo {
+    async fn id(&self) -> String {
+        if let Some(id) = &self.id {
+            id.clone().to_string()
+        } else {
+            String::from("")
         }
+    }
+
+    async fn username(&self) -> &str {
+        &self.username
     }
 }
 
