@@ -1,7 +1,9 @@
 use async_graphql::{Context, Object, Result, ID};
+use async_graphql::guard::Guard;
 // use nanoid::nanoid;
 // use serde::ser::SerializeStruct;
 // use bson::doc;
+use crate::authorization::{PermissionGuard, Permission};
 use crate::models::{Coffee, CreateCoffeeInput, UpdateCoffeeInput};
 // use futures::{Stream, StreamExt};
 use wither::prelude::*;
@@ -138,21 +140,25 @@ impl Query {
 
 pub struct Mutation;
 
-#[Object(extends)]
+#[Object]
 impl Mutation {
     /// Creates a new coffee
+    // #[graphql(entity = true, external = false, provides = "createCoffee")]
+    #[graphql(guard(PermissionGuard(permission = "Permission::CreateCoffee")))]
     async fn create_coffee(&self, ctx: &Context<'_>, input: CreateCoffeeInput) -> Result<Coffee> {
         let db: &Database = ctx.data()?;
         create_coffee(db, input).await
     }
 
     /// Updates a coffee
+    // #[graphql(entity = true, external = false, provides = "updateCoffee")]
     async fn update_coffee(&self, ctx: &Context<'_>, input: UpdateCoffeeInput) -> Result<Coffee> {
         let db: &Database = ctx.data()?;
         update_coffee(db, input).await
     }
 
     /// Deletes a coffeee
+    // #[graphql(entity = true, external = false, provides = "deleteCoffee")]
     async fn delete_coffee(&self, ctx: &Context<'_>, id: String) -> Result<Coffee> {
         let db: &Database = ctx.data()?;
         delete_coffee(db, id).await

@@ -14,6 +14,8 @@ pub async fn index(
 ) -> Response {
     let maybe_user: Option<User> = session.get("user").unwrap_or(None);
 
+    // println!("{:?}", maybe_user);
+
     let mut request = gql_request.into_inner();
     if let Some(user) = maybe_user {
         request = request.data(user);

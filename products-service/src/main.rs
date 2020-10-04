@@ -1,52 +1,37 @@
 #![feature(associated_type_bounds)]
 
+mod authorization;
 mod graphql;
 mod models;
 
 // use crate::graphql::coffee::{CoffeeSchema, MutationRoot, QueryRoot, SubscriptionRoot};
-use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Result, guard, web::{self, post}};
+use actix_redis::RedisSession;
+use actix_web::{
+    cookie, guard, middleware,
+    web::{self, post},
+    App, HttpRequest, HttpResponse, HttpServer, Result,
+};
 // use actix_cors::Cors;
 // use actix_web_actors::ws;
-use async_graphql::{EmptyMutation, EmptySubscription, Schema, extensions::ApolloTracing, http::{playground_source, GraphQLPlaygroundConfig}};
-use async_graphql_actix_web::{WSSubscription};
+use async_graphql::{
+    extensions::ApolloTracing,
+    http::{playground_source, GraphQLPlaygroundConfig},
+    EmptyMutation, EmptySubscription, Schema,
+};
+use async_graphql_actix_web::WSSubscription;
 // use std::sync::Arc;
-use graphql::{Mutation, Query, index};
+use graphql::{index, Mutation, Query};
 use models::Coffee;
 use wither::prelude::*;
-
-/*
-async fn index(schema: web::Data<CoffeeSchema>, req: GQLRequest) -> GQLResponse {
-    let inner = req.into_inner();
-    // let inner: QueryBuilder = req.into_inner();
-    // inner.execute(&schema).await.into()
-}
-
-async fn index_playground() -> Result<HttpResponse> {
-    Ok(HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(playground_source(
-            GraphQLPlaygroundConfig::new("/graphql").subscription_endpoint("/graphql"),
-        )))
-}
-
-async fn index_ws(
-    schema: web::Data<CoffeeSchema>,
-    req: HttpRequest,
-    payload: web::Payload,
-) -> Result<HttpResponse> {
-    ws::start_with_protocols(WSSubscription::new(&schema), &["graphql-ws"], &req, payload)
-}
-*/
 
 async fn init() -> wither::mongodb::Database {
     use wither::mongodb::Client;
 
     // Connect to the database.
-    let products_database =
-        Client::with_uri_str("mongodb://root:example@localhost:27017/admin")
-            .await
-            .expect("Cannot connect to the db")
-            .database("products-service");
+    let products_database = Client::with_uri_str("mongodb://root:example@localhost:27017/admin")
+        .await
+        .expect("Cannot connect to the db")
+        .database("products-service");
 
     Coffee::sync(&products_database)
         .await
@@ -67,10 +52,19 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(schema.clone())
+            // enable logger
+            .wrap(middleware::Logger::default())
+            // cookie session middleware
+            .wrap(
+                RedisSession::new("127.0.0.1:6379", b"N7WoK3mG7lSb0CpK8UhAabUZNi27n5ub")
+                    // Don't allow the cookie to be accessed from javascript
+                    .cookie_http_only(true)
+                    // allow the cookie only from the current domain
+                    .cookie_same_site(cookie::SameSite::Lax),
+            )
             // .wrap(Cors::default())
             .route("/graphql", post().to(index))
         /*
-        .service(web::resource("/graphql").guard(guard::Post()).to(index))
         .service(
             web::resource("/graphql")
                 .guard(guard::Get())

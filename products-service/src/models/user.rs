@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use wither::bson::{doc, oid::ObjectId};
 
+use crate::authorization::Permission;
+
 /// User representation
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -13,4 +15,11 @@ pub struct User {
     pub password: String,
     // User email
     // email: String,
+}
+
+impl User {
+    pub async fn has_permission(&self, permission: &Permission) -> bool {
+        println!("Asked permission: {:?} for user: {:?}", permission, self);
+        true
+    }
 }
