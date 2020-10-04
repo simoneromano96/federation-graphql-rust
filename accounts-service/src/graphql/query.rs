@@ -1,22 +1,6 @@
-use async_graphql::{Context, ID, Object, Result, SimpleObject};
+use async_graphql::{Context, ID, Object, Result};
 
 use crate::models::{User, UserInfo};
-// use crate::models::{User, UserInfo};
-
-/*
-pub struct Query;
-
-#[Object(extends)]
-impl Query {
-    pub async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<UserInfo> {
-        if let Ok(user) = ctx.data::<User>() {
-            Ok(user.to_user_info())
-        } else {
-            Err("Not logged in".into())
-        }
-    }
-}
-*/
 
 pub struct Query;
 

@@ -1,10 +1,10 @@
 use actix_session::Session;
-use actix_web::{HttpRequest, HttpResponse, web::Data};
-use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
+use actix_web::web::Data;
+// use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
 use async_graphql_actix_web::{Request, Response};
 
-use crate::models::User;
 use super::IdentityServiceSchema;
+use crate::models::User;
 
 pub async fn index(
     schema: Data<IdentityServiceSchema>,
@@ -22,6 +22,7 @@ pub async fn index(
     schema.execute(request).await.into()
 }
 
+/*
 pub async fn gql_playgound() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
@@ -29,3 +30,4 @@ pub async fn gql_playgound() -> HttpResponse {
             GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
         ))
 }
+*/
