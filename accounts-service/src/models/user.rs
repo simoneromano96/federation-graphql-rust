@@ -1,8 +1,8 @@
 use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
-use wither::bson::{doc, oid::ObjectId};
+use wither::{bson::{doc, oid::ObjectId}, mongodb::Database};
 use wither::prelude::*;
-use async_graphql::{Context, ID, Object, Result};
+use async_graphql::{Context, ID, Object};
 
 /// User representation
 #[derive(Debug, Model, Serialize, Deserialize)]
@@ -25,6 +25,14 @@ impl User {
             id: self.id.clone(),
             username: self.username.clone(),
         }
+    }
+
+    pub async fn find_by_id(db: &Database, id: ObjectId) -> Option<Self> {
+        User::find_one(&db, doc! { "_id": id }, None).await.unwrap()
+    }
+
+    pub async fn find_by_username(db: &Database, username: &str) -> Option<Self> {
+        User::find_one(&db, doc! { "username": username }, None).await.unwrap()
     }
 }
 
