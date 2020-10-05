@@ -1,6 +1,7 @@
 use actix_session::Session;
-use actix_web::web::Data;
+use actix_web::{HttpResponse, web::Data};
 // use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
+use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
 use async_graphql_actix_web::{Request, Response};
 
 use super::IdentityServiceSchema;
@@ -22,12 +23,10 @@ pub async fn index(
     schema.execute(request).await.into()
 }
 
-/*
 pub async fn gql_playgound() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(playground_source(
-            GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
+            GraphQLPlaygroundConfig::new("/graphql").subscription_endpoint("/graphql"),
         ))
 }
-*/

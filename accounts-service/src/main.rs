@@ -7,7 +7,7 @@ use actix_redis::RedisSession;
 use actix_web::{cookie, middleware, App, HttpServer};
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use authentication::routes::*;
-use graphql::{index, IdentityServiceSchema, Query};
+use graphql::{IdentityServiceSchema, Query, gql_playgound, index};
 use models::User;
 use paperclip::actix::{
     web::{get, post, scope},
@@ -54,6 +54,7 @@ async fn main() -> std::io::Result<()> {
             .data(identity_database.clone())
             .data(graphql_schema.clone())
             .route("/graphql", actix_web::web::post().to(index))
+            .route("/playground", actix_web::web::get().to(gql_playgound))
             // Record services and routes from this line.
             .wrap_api()
             .service(
