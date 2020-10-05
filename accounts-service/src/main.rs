@@ -5,7 +5,7 @@ mod models;
 
 use actix_redis::RedisSession;
 use actix_web::{cookie, middleware, App, HttpServer};
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema, extensions::ApolloTracing};
 use authentication::routes::*;
 use graphql::{IdentityServiceSchema, Query, gql_playgound, index};
 use models::User;
@@ -30,8 +30,8 @@ async fn main() -> std::io::Result<()> {
 
     let graphql_schema: IdentityServiceSchema =
         Schema::build(Query, EmptyMutation, EmptySubscription)
-        // .extension(|| ApolloTracing::default())
         .data(identity_database.clone())
+        .extension(ApolloTracing)
         .finish();
 
     // let db = std::sync::Arc::new(identity_database);
@@ -53,6 +53,7 @@ async fn main() -> std::io::Result<()> {
             )
             .data(identity_database.clone())
             .data(graphql_schema.clone())
+            // GraphQL
             .route("/graphql", actix_web::web::post().to(index))
             .route("/playground", actix_web::web::get().to(gql_playgound))
             // Record services and routes from this line.

@@ -1,20 +1,20 @@
 use actix_session::Session;
 use paperclip::actix::{
     api_v2_operation,
-    web::{HttpResponse, Json, Data},
+    web::{Data, HttpResponse, Json},
 };
-use wither::bson::doc;
+use wither::bson::{doc, oid::ObjectId};
 use wither::mongodb::Database as MongoDatabase;
 use wither::prelude::*;
 
-use crate::models::{User, UserInfo, UserInput};
 use crate::authentication;
-
+use crate::models::{User, UserInfo, UserInput};
 
 // #[post("/signup")]
 /// User signup
 ///
 /// Creates a new user but doesn't log in the user
+/// Currently like this because of future developements
 #[api_v2_operation]
 pub async fn signup(
     db: Data<MongoDatabase>,
@@ -49,35 +49,36 @@ pub async fn login(
     session: Session,
     db: Data<MongoDatabase>,
 ) -> Result<Json<UserInfo>, HttpResponse> {
-    let maybe_user: Option<User> = session.get("user").unwrap();
-    if let Some(user) = maybe_user {
+    let maybe_user: Option<ObjectId> = session.get("user_id").unwrap();
+    if let Some(user_id) = maybe_user {
+        // We can be sure that the user exists if there is a session
+        let user = User::find_by_id(&db, user_id).await.unwrap();
         session.renew();
         Ok(Json(user.to_user_info()))
     } else {
-        let find_user_result: Result<Option<User>, wither::WitherError> =
-            User::find_one(&db, doc! { "username": &credentials.username }, None).await;
+        // let find_user_result: Result<Option<User>, wither::WitherError> =
+        //     User::find_one(&db, doc! { "username": &credentials.username }, None).await;
+        // if let Ok(find_user) = find_user_result {
+        if let Some(user) = User::find_by_username(&db, &credentials.username).await {
+            let clear_password = &credentials.password;
+            let hashed_password = &user.password;
 
-        if let Ok(find_user) = find_user_result {
-            if let Some(user) = find_user {
-                let clear_password = &credentials.password;
-                let hashed_password = &user.password;
+            let password_verified = authentication::verify_hash(hashed_password, clear_password);
 
-                let password_verified =
-                    authentication::verify_hash(hashed_password, clear_password);
-
-                if password_verified {
-                    let info = user.to_user_info();
-                    session.set("user", user).unwrap();
-                    Ok(Json(info))
-                } else {
-                    Err(HttpResponse::BadRequest().body("Wrong password"))
-                }
+            if password_verified {
+                let info = user.to_user_info();
+                // If the user exists there is a user id
+                session.set("user_id", user.id.unwrap()).unwrap();
+                Ok(Json(info))
             } else {
-                Err(HttpResponse::NotFound().body("User not found"))
+                Err(HttpResponse::BadRequest().body("Wrong password"))
             }
         } else {
-            Err(HttpResponse::InternalServerError().body(""))
+            Err(HttpResponse::NotFound().body("User not found"))
         }
+        // } else {
+        //     Err(HttpResponse::InternalServerError().body(""))
+        // }
     }
 }
 
@@ -88,13 +89,19 @@ pub async fn login(
 #[api_v2_operation]
 pub async fn user_info(
     session: Session,
-    // db: Data<MongoDatabase>,
+    db: Data<MongoDatabase>,
 ) -> Result<Json<UserInfo>, HttpResponse> {
-    let maybe_user: Option<User> = session.get("user").unwrap();
+    let maybe_id: Option<ObjectId> = session.get("user_id").unwrap();
 
-    if let Some(user) = maybe_user {
-        session.renew();
-        Ok(Json(user.to_user_info()))
+    if let Some(id) = maybe_id {
+        let maybe_user = User::find_by_id(&db, id).await;
+        if let Some(user) = maybe_user {
+            session.renew();
+            Ok(Json(user.to_user_info()))
+        } else {
+            session.clear();
+            Err(HttpResponse::Unauthorized().body("Error"))
+        }
     } else {
         Err(HttpResponse::Unauthorized().body("Not logged in"))
     }
@@ -106,7 +113,7 @@ pub async fn user_info(
 /// Logs out the current user invalidating the session if he is logged in
 #[api_v2_operation]
 pub async fn logout(session: Session) -> Result<HttpResponse, HttpResponse> {
-    let maybe_user: Option<User> = session.get("user").unwrap();
+    let maybe_user: Option<ObjectId> = session.get("user_id").unwrap();
 
     if let Some(_) = maybe_user {
         session.clear();

@@ -111,7 +111,7 @@ async fn delete_coffee(db: &Database, id: String) -> Result<Coffee> {
     }
 }
 
-#[Object]
+#[Object(extends)]
 impl Query {
     /// Returns an array with all the coffees or an empty array
     async fn coffees(&self, ctx: &Context<'_>) -> Result<Vec<Coffee>> {
@@ -135,7 +135,7 @@ impl Query {
 
 pub struct Mutation;
 
-#[Object]
+#[Object(extends)]
 impl Mutation {
     /// Creates a new coffee
     #[graphql(guard(PermissionGuard(permission = "Permission::CreateCoffee")))]

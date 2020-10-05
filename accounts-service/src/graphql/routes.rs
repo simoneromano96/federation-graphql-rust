@@ -3,6 +3,7 @@ use actix_web::{HttpResponse, web::Data};
 // use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
 use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
 use async_graphql_actix_web::{Request, Response};
+use wither::{bson::oid::ObjectId, mongodb::Database};
 
 use super::IdentityServiceSchema;
 use crate::models::User;
@@ -10,13 +11,13 @@ use crate::models::User;
 pub async fn index(
     schema: Data<IdentityServiceSchema>,
     // req: HttpRequest,
+    db: Data<Database>,
     gql_request: Request,
     session: Session,
 ) -> Response {
-    let maybe_user: Option<User> = session.get("user").unwrap_or(None);
-
     let mut request = gql_request.into_inner();
-    if let Some(user) = maybe_user {
+    if let Some(id) = session.get("user_id").unwrap_or(None) {
+        let user = User::find_by_id(&db, id).await.unwrap();
         request = request.data(user);
     }
 
