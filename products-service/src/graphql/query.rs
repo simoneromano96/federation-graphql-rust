@@ -111,12 +111,11 @@ async fn delete_coffee(db: &Database, id: String) -> Result<Coffee> {
     }
 }
 
-#[Object(extends)]
+#[Object]
 impl Query {
     /// Returns an array with all the coffees or an empty array
     async fn coffees(&self, ctx: &Context<'_>) -> Result<Vec<Coffee>> {
         let db: &Database = ctx.data()?;
-
         fetch_all_coffees(db).await
     }
 
@@ -126,15 +125,11 @@ impl Query {
         fetch_coffee_by_id(db, id).await
     }
 
+    /// Returns a coffee by its ID, will return error if none is present with the given ID
     #[graphql(entity)]
-    async fn echo(&self, name: String, price: f64, image_url: String) -> Coffee {
-        Coffee {
-            id: None,
-            name,
-            description: None,
-            price,
-            image_url,
-        }
+    async fn find_coffee_by_id(&self, ctx: &Context<'_>, id: String) -> Result<Coffee> {
+        let db: &Database = ctx.data()?;
+        fetch_coffee_by_id(db, id).await
     }
 }
 
@@ -143,7 +138,6 @@ pub struct Mutation;
 #[Object]
 impl Mutation {
     /// Creates a new coffee
-    // #[graphql(entity = true, external = false, provides = "createCoffee")]
     #[graphql(guard(PermissionGuard(permission = "Permission::CreateCoffee")))]
     async fn create_coffee(&self, ctx: &Context<'_>, input: CreateCoffeeInput) -> Result<Coffee> {
         let db: &Database = ctx.data()?;
@@ -151,32 +145,17 @@ impl Mutation {
     }
 
     /// Updates a coffee
-    // #[graphql(entity = true, external = false, provides = "updateCoffee")]
+    #[graphql(guard(PermissionGuard(permission = "Permission::UpdateCoffee")))]
     async fn update_coffee(&self, ctx: &Context<'_>, input: UpdateCoffeeInput) -> Result<Coffee> {
         let db: &Database = ctx.data()?;
         update_coffee(db, input).await
     }
 
     /// Deletes a coffeee
-    // #[graphql(entity = true, external = false, provides = "deleteCoffee")]
+    #[graphql(guard(PermissionGuard(permission = "Permission::DeleteCoffee")))]
     async fn delete_coffee(&self, ctx: &Context<'_>, id: String) -> Result<Coffee> {
         let db: &Database = ctx.data()?;
         delete_coffee(db, id).await
-    }
-
-    #[graphql(entity)]
-    async fn echo_create_input(&self, _input: CreateCoffeeInput) -> Result<String> {
-        Ok("ok".into())
-    }
-
-    #[graphql(entity)]
-    async fn echo_update_input(&self, _input: UpdateCoffeeInput) -> Result<String> {
-        Ok("ok".into())
-    }
-
-    #[graphql(entity)]
-    async fn echo_delete(&self, _id: String) -> Result<String> {
-        Ok("ok".into())
     }
 }
 
