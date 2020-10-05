@@ -15,6 +15,7 @@ async fn find_user_by_id(db: &Database, id: ID) -> Option<User> {
     }
 }
 
+/*
 async fn find_user_by_username(db: &Database, username: String) -> Option<User> {
     let res = User::find_one(&db, doc! { "username": username }, None).await;
     if let Ok(maybe_user) = res {
@@ -23,6 +24,7 @@ async fn find_user_by_username(db: &Database, username: String) -> Option<User> 
         None
     }
 }
+*/
 
 #[Object]
 impl Query {
@@ -47,6 +49,7 @@ impl Query {
         }
     }
 
+    /*
     #[graphql(entity)]
     async fn find_user_by_username(&self, ctx: &Context<'_>, username: String) -> Result<UserInfo> {
         let db: &Database = ctx.data()?;
@@ -57,4 +60,5 @@ impl Query {
             Err("No user found".into())
         }
     }
+    */
 }
