@@ -7,12 +7,13 @@ const main = async () => {
   gateway.register(mercurius, {
     graphiql: "playground",
     subscription: true,
+    pollingInterval: 2000,
     gateway: {
       services: [
         {
           name: 'accounts',
           url: 'http://127.0.0.1:4001/graphql',
-          mandatory: true,
+          // mandatory: true,
           // Forward all headers
           rewriteHeaders: (headers) => headers,
         },
@@ -24,7 +25,6 @@ const main = async () => {
         }
       ]
     },
-    pollingInterval: 2000,
     // errorHandler: (error, service) => {
     //   console.error("Service: ", service);
     //   console.error("Error: ", error);
