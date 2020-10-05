@@ -7,18 +7,14 @@ mod models;
 // use crate::graphql::coffee::{CoffeeSchema, MutationRoot, QueryRoot, SubscriptionRoot};
 use actix_redis::RedisSession;
 use actix_web::{
-    cookie, guard, middleware,
-    web::{self, post},
-    App, HttpRequest, HttpResponse, HttpServer, Result,
+    cookie, middleware,
+    web::{post},
+    App, HttpServer,
 };
 // use actix_cors::Cors;
 // use actix_web_actors::ws;
-use async_graphql::{
-    extensions::ApolloTracing,
-    http::{playground_source, GraphQLPlaygroundConfig},
-    EmptyMutation, EmptySubscription, Schema,
-};
-use async_graphql_actix_web::WSSubscription;
+use async_graphql::{EmptySubscription, Schema, extensions::ApolloTracing};
+// use async_graphql_actix_web::WSSubscription;
 // use std::sync::Arc;
 use graphql::{index, Mutation, Query};
 use models::Coffee;
@@ -45,8 +41,8 @@ async fn main() -> std::io::Result<()> {
     let db = init().await;
 
     let schema = Schema::build(Query, Mutation, EmptySubscription)
-        // .extension(|| ApolloTracing::default())
         .data(db)
+        .extension(ApolloTracing)
         .finish();
 
     HttpServer::new(move || {
@@ -62,7 +58,9 @@ async fn main() -> std::io::Result<()> {
                     // allow the cookie only from the current domain
                     .cookie_same_site(cookie::SameSite::Lax),
             )
+            // CORS
             // .wrap(Cors::default())
+            // GraphQL
             .route("/graphql", post().to(index))
         /*
         .service(

@@ -120,16 +120,16 @@ impl Query {
     }
 
     /// Returns a coffee by its ID, will return error if none is present with the given ID
-    async fn coffee(&self, ctx: &Context<'_>, id: String) -> Result<Coffee> {
+    async fn coffee(&self, ctx: &Context<'_>, id: ID) -> Result<Coffee> {
         let db: &Database = ctx.data()?;
-        fetch_coffee_by_id(db, id).await
+        fetch_coffee_by_id(db, id.to_string()).await
     }
 
     /// Returns a coffee by its ID, will return error if none is present with the given ID
     #[graphql(entity)]
-    async fn find_coffee_by_id(&self, ctx: &Context<'_>, id: String) -> Result<Coffee> {
+    async fn find_coffee_by_id(&self, ctx: &Context<'_>, id: ID) -> Result<Coffee> {
         let db: &Database = ctx.data()?;
-        fetch_coffee_by_id(db, id).await
+        fetch_coffee_by_id(db, id.to_string()).await
     }
 }
 

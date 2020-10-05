@@ -1,7 +1,7 @@
 use crate::models::User;
 use async_graphql::{async_trait, guard::Guard};
 use async_graphql::{Context, Result};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Permission {
