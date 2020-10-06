@@ -1,5 +1,5 @@
 mod authentication;
-// mod authorization;
+mod authorization;
 mod graphql;
 mod models;
 

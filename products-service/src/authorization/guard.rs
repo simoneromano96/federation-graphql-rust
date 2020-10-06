@@ -1,7 +1,9 @@
 use crate::models::User;
 use async_graphql::{async_trait, guard::Guard};
 use async_graphql::{Context, Result};
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use wither::bson::oid::ObjectId;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Permission {
@@ -45,11 +47,11 @@ pub struct PermissionGuard {
     pub permission: Permission,
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl Guard for PermissionGuard {
     async fn check(&self, ctx: &Context<'_>) -> Result<()> {
         // let maybe_user = ctx.data_opt::<User>();
-        if let Some(user) = ctx.data_opt::<User>() {
+        if let Some(user_id) = ctx.data_opt::<ObjectId>() {
             if user.has_permission(&self.permission).await {
                 Ok(())
             } else {

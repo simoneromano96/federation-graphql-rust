@@ -16,8 +16,8 @@ pub async fn index(
     session: Session,
 ) -> Response {
     let mut request = gql_request.into_inner();
-    if let Some(id) = session.get("user_id").unwrap_or(None) {
-        let user = User::find_by_id(&db, id).await.unwrap();
+    if let Some(id) = session.get::<ObjectId>("user_id").unwrap_or(None) {
+        let user = User::find_by_id(&db, &id).await.unwrap();
         request = request.data(user);
     }
 

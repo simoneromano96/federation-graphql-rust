@@ -1,8 +1,13 @@
+use async_graphql::{Context, Object, ID};
 use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
-use wither::{bson::{doc, oid::ObjectId}, mongodb::Database};
 use wither::prelude::*;
-use async_graphql::{Context, ID, Object};
+use wither::{
+    bson::{doc, oid::ObjectId},
+    mongodb::Database,
+};
+
+use super::Role;
 
 /// User representation
 #[derive(Debug, Model, Serialize, Deserialize)]
@@ -17,9 +22,20 @@ pub struct User {
     pub password: String,
     // User email
     // email: String,
+    /// User role
+    pub role: Role,
 }
 
 impl User {
+    pub fn new_user(username: &str, password: &str) -> Self {
+        User {
+            id: None,
+            username: String::from(username),
+            password: String::from(password),
+            role: Role::Customer,
+        }
+    }
+
     pub fn to_user_info(&self) -> UserInfo {
         UserInfo {
             id: self.id.clone(),
@@ -27,12 +43,14 @@ impl User {
         }
     }
 
-    pub async fn find_by_id(db: &Database, id: ObjectId) -> Option<Self> {
+    pub async fn find_by_id(db: &Database, id: &ObjectId) -> Option<Self> {
         User::find_one(&db, doc! { "_id": id }, None).await.unwrap()
     }
 
     pub async fn find_by_username(db: &Database, username: &str) -> Option<Self> {
-        User::find_one(&db, doc! { "username": username }, None).await.unwrap()
+        User::find_one(&db, doc! { "username": username }, None)
+            .await
+            .unwrap()
     }
 }
 

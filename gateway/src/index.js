@@ -1,12 +1,16 @@
 const Fastify = require("fastify")
 const mercurius = require('mercurius')
 
+const {config} = require("./config")
+
 const gateway = Fastify()
 
 const main = async () => {
   gateway.register(mercurius, {
     graphiql: "playground",
     subscription: true,
+    federationMetadata: true,
+    allowBatchedQueries: true,
     pollingInterval: 2000,
     gateway: {
       services: [
@@ -32,7 +36,7 @@ const main = async () => {
     // },
   })
   
-  await gateway.listen(4000)
+  await gateway.listen(config.gateway.port);
   
   console.log("API Gateway available at http://localhost:4000/graphql")
 }

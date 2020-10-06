@@ -24,7 +24,7 @@ impl Query {
         let oid_result = ObjectId::with_string(&id.to_string());
         if let Ok(oid) = oid_result {
             let db: &Database = ctx.data()?;
-            let maybe_user = User::find_by_id(db, oid).await;
+            let maybe_user = User::find_by_id(db, &oid).await;
             if let Some(user) = maybe_user {
                 Ok(user.to_user_info())
             } else {

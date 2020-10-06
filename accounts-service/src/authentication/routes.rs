@@ -26,11 +26,7 @@ pub async fn signup(
     let password = authentication::hash_password(clear_password);
 
     // Create a user.
-    let mut user = User {
-        id: None,
-        username: username.clone(),
-        password,
-    };
+    let mut user = User::new_user(username, &password);
 
     if let Ok(_) = user.save(&db, None).await {
         Ok(Json(user.to_user_info()))
@@ -52,7 +48,7 @@ pub async fn login(
     let maybe_user: Option<ObjectId> = session.get("user_id").unwrap();
     if let Some(user_id) = maybe_user {
         // We can be sure that the user exists if there is a session
-        let user = User::find_by_id(&db, user_id).await.unwrap();
+        let user = User::find_by_id(&db, &user_id).await.unwrap();
         session.renew();
         Ok(Json(user.to_user_info()))
     } else {
@@ -94,7 +90,7 @@ pub async fn user_info(
     let maybe_id: Option<ObjectId> = session.get("user_id").unwrap();
 
     if let Some(id) = maybe_id {
-        let maybe_user = User::find_by_id(&db, id).await;
+        let maybe_user = User::find_by_id(&db, &id).await;
         if let Some(user) = maybe_user {
             session.renew();
             Ok(Json(user.to_user_info()))
