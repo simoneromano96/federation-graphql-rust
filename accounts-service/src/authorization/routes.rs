@@ -1,8 +1,10 @@
+use std::sync::{Arc, Mutex};
 use actix_session::Session;
 use paperclip::actix::{
     api_v2_operation,
     web::{Data, HttpResponse, Json, Query},
 };
+use sqlx_adapter::casbin::Enforcer;
 use wither::bson::{doc, oid::ObjectId};
 use wither::mongodb::Database as MongoDatabase;
 use wither::prelude::*;
@@ -18,6 +20,7 @@ use crate::models::{User, UserInfo, UserInput};
 #[api_v2_operation]
 pub async fn is_authorized(
     db: Data<MongoDatabase>,
+    enforcer: Data<Arc<Mutex<Enforcer>>>,
     permission_query: Query<PermissionQuery>,
 ) -> Result<HttpResponse, HttpResponse> {
     if let Some(user) = User::find_by_id(&db, &permission_query.subject).await {
@@ -34,3 +37,4 @@ pub async fn is_authorized(
         Err(HttpResponse::BadRequest().body("Cannot find user"))
     }
 }
+

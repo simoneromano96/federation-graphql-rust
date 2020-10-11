@@ -27,10 +27,10 @@ wither = { git = "https://github.com/simoneromano96/wither.git" }
 # OpenAPI specification with Actix
 paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features = ["actix3-nightly", "actix-session"] }
 # GraphQL implementation
-async-graphql = { version = "^2.0.0-alpha.23", features = ["apollo_tracing"] }
+async-graphql = { version = "^2.0.0-alpha.24", features = ["apollo_tracing", "apollo_persisted_queries"] }
 # GraphQL Actix Adapter
-async-graphql-actix-web = "2.0.0-alpha.23"
+async-graphql-actix-web = "^2.0.0-alpha.24"
 # Authorization enforcer policies
-casbin = { version = "2.0.2", features = ["runtime-tokio"] }
-# Adapter for SQLx
+# casbin = { version = "2.0.2", features = ["runtime-tokio"] }
+# Authorization enforcer policies with Adapter for SQLx
 sqlx-adapter = { version = "0.3.0", features = ["postgres"] }
