@@ -12,6 +12,7 @@ const main = async () => {
     federationMetadata: true,
     allowBatchedQueries: true,
     pollingInterval: 2000,
+    persistedQueryProvider: mercurius.persistedQueryDefaults.automatic(5000),
     gateway: {
       services: [
         {
