@@ -55,11 +55,11 @@ async fn main() -> std::io::Result<()> {
 
     let graphql_schema = init_graphql(&identity_database);
 
-    let enforcer = Arc::new(Mutex::new(
+    let enforcer = Arc::new(
         init_casbin()
             .await
             .expect("could not create access policy enforcer"),
-    ));
+    );
 
     // let db = std::sync::Arc::new(identity_database);
 
