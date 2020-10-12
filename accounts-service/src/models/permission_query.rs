@@ -6,6 +6,6 @@ use super::{Action, Object};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PermissionQuery {
     pub subject: ObjectId,
-    pub action: Action,
-    pub object: Object,
+    pub action: String,
+    pub object: String,
 }

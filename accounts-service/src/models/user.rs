@@ -23,7 +23,7 @@ pub struct User {
     // User email
     // email: String,
     /// User role
-    pub role: Role,
+    pub role: String,
 }
 
 impl User {
@@ -32,7 +32,7 @@ impl User {
             id: None,
             username: String::from(username),
             password: String::from(password),
-            role: Role::Customer,
+            role: String::from("customer"),
         }
     }
 

@@ -1,13 +1,12 @@
-use std::sync::{Arc, Mutex};
-use actix_session::Session;
+use std::sync::Arc;
+
 use paperclip::actix::{
     api_v2_operation,
     web::{Data, HttpResponse, Json, Query},
 };
-use sqlx_adapter::casbin::{CoreApi, Enforcer};
+use sqlx_adapter::casbin::prelude::*;
 use wither::bson::{doc, oid::ObjectId};
 use wither::mongodb::Database as MongoDatabase;
-use wither::prelude::*;
 
 use crate::models::{PermissionQuery, Role};
 use crate::models::{User, UserInfo, UserInput};
@@ -22,30 +21,23 @@ pub async fn is_authorized(
     db: Data<MongoDatabase>,
     enforcer: Data<Arc<Enforcer>>,
     permission_query: Query<PermissionQuery>,
-) -> Result<HttpResponse, HttpResponse> {
+) -> std::result::Result<HttpResponse, HttpResponse> {
     let sub = &permission_query.subject;
     let obj = &permission_query.object;
     let act = &permission_query.action;
 
-    let e = enforcer;
-    
-    let r = e.enforce(&[sub, obj, act]);
-
-    /*
-    if let Some(user) = User::find_by_id(&db, &permission_query.subject).await {
-
-        // TODO
-        match user.role {
-            Role::Admin => {
-                Ok(HttpResponse::Ok().body(""))
+    if let Some(user) = User::find_by_id(&db, &sub).await {
+        let r = enforcer.enforce((&user.role, obj, act));
+        if let Ok(authorized) = r {
+            if authorized {
+                Ok(HttpResponse::Ok().body("Is authorized"))
+            } else {
+                Ok(HttpResponse::Unauthorized().body("Not authorized"))
             }
-            _ => {
-                Err(HttpResponse::Forbidden().body("Does not have permission"))
-            }
+        } else {
+            Err(HttpResponse::InternalServerError().body("Oopsie woopsie!"))
         }
     } else {
         Err(HttpResponse::BadRequest().body("Cannot find user"))
     }
-    */
 }
-

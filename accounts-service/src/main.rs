@@ -33,6 +33,13 @@ async fn init_casbin() -> sqlx_adapter::casbin::Result<Enforcer> {
     Ok(e)
 }
 
+async fn init_db() -> Database {
+    Client::with_uri_str("mongodb://root:example@127.0.0.1:27017/")
+        .await
+        .expect("Cannot connect to the db")
+        .database("identity-service")
+}
+
 fn init_graphql(db: &Database) -> IdentityServiceSchema {
     Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(db.clone())
@@ -44,10 +51,7 @@ fn init_graphql(db: &Database) -> IdentityServiceSchema {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Connect & sync indexes.
-    let identity_database = Client::with_uri_str("mongodb://root:example@127.0.0.1:27017/")
-        .await
-        .expect("Cannot connect to the db")
-        .database("identity-service");
+    let identity_database = init_db().await;
 
     User::sync(&identity_database)
         .await
