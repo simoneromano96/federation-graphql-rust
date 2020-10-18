@@ -16,7 +16,7 @@ The services are:
 
 This service must implement: login; signup; logout; user-info; is-authorized endpoints.
 
-This service must be a REST service and should be a GraphQL service.
+This service must be a REST service and should be a GraphQL service where possible, every service must be documented (REST with OpenAPI and GraphQL with the builtin schema docs).
 
 Routes details:
 
@@ -28,7 +28,13 @@ Routes details:
 
 * /logout must destroy the user session
 
+The following routes must be protected:
+
 * /is-authorized must say if a user (can also be a guest) can do something to some resources
+
+* /add-policy must add the policy triplet (subject, action, object)
+
+* /delete-policy must remove the policy triplet (subject, action, object)
 
 * /add-role must add a role
 
@@ -86,7 +92,7 @@ I could use Paseto to generate some tokens but this don't solve the main problem
 
 So the Identity/Accounts Service (they should be merged) exposes both "REST" (I wouldn't call them REST TBH) and GraphQL API standards.
 
-I believe that the tokens are as secure as where they are stored, so having them in the local storage or session storage in a untrusted client is bad, while cookies can be blocked from reading from JS and are set automatically and they can be invalidated (with a real logout).
+I believe that the tokens are as secure as where they are stored, so having them in the local storage or session storage in a untrusted client is bad, cookies, on the other hand, can be blocked from reading from JS (HTTP Only), are set automatically and they can be invalidated (with a real logout).
 
 Tokens are good/perfect for machine-to-machine communication where the parties are trusted.
 
@@ -102,9 +108,14 @@ Until now I've talked about Authentication mostly, now I should solve the proble
 
 In my services I have the session, so I can get the current User before resolving the Graph query, but I'm still not sure on how to handle all this, I'd like to keep everything in my IAM service or I could also detatch it with an Access Control and Permission Management service, I'm not sure if detatching is a good idea right now, mostly because the only endpoint I can think of is the "/is-authorized" endpoint, that expects the user role and the action and gives back if he can execute the action, but this means that there will be an added latency that I'm not sure I like, if I could cache the roles and actions tough it might be ok.
 
-The chosen library for the access control is casbin, it is a multi-language library with an adapter for Rust and sqlx, it exposes an admin portal too.
+The chosen library for the access control is casbin, it is a multi-language library with an adapter for Rust and SQLx, it exposes an admin portal too.
+
+Now there is another issue, I don't like having a service using both mongo and postgres, using both the wither and SQLx dependencies, I think I should merge them into postgres and use SQLx.
 
 It's unclear to me currently how to enable federation in the services, if I put `graphql(entity)` to a query that doesn't have any input (a Read All for example), it says that it must have an input, if it has an input it is not exposed to the gateway, but if there is no `graphql(entity)` in the query schema nothing is exposed to the gateway, I had to put some fake queries/mutations that return the type that is needed for the other queries/mutations.
 
 Turns out I didn't understand at all the entity concept, it is internally used between the services to get particular informations, marking something with entity will not expose it externally but internally between the services, there is no need to put them in mutations too, just in a queries for each entity.
 
+If I need to expose both an entity and a query that fetches that entity the code must be sadly duplicated as for Federation design.
+
+To handle subscriptions, since I already have redis, I will use the pub-sub interface of redis avoiding more useless dependencies.

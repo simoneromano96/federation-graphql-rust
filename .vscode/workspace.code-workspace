@@ -4,7 +4,7 @@
 			"path": "..\\identity-service"
 		},
 		{
-			"path": ".."
+			"path": "..\\gateway"
 		}
 	],
 	"settings": {}

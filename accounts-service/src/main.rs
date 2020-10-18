@@ -13,7 +13,7 @@ use async_graphql::{
     EmptyMutation, EmptySubscription, Schema,
 };
 use authentication::routes::*;
-use authorization::is_authorized;
+use authorization::{add_policy, is_authorized};
 use graphql::{gql_playgound, index, IdentityServiceSchema, Query};
 use models::User;
 use paperclip::actix::{
@@ -23,11 +23,11 @@ use paperclip::actix::{
 use sqlx_adapter::casbin::prelude::*;
 use sqlx_adapter::SqlxAdapter;
 use wither::mongodb::{Client, Database};
-use wither::prelude::*;
+use wither::Model;
 
 async fn init_casbin() -> sqlx_adapter::casbin::Result<Enforcer> {
-    let m = DefaultModel::from_file("./access_model/rbac_model.conf").await?;
-    let a = SqlxAdapter::new("postgres://casbin_rs:casbin_rs@127.0.0.1:5432/casbin", 8).await?;
+    let m = DefaultModel::from_file("C:\\Users\\Sippo\\Desktop\\git\\github\\federation-graphql-rust\\accounts-service\\src\\access_model\\rbac_model.conf").await?;
+    let a = SqlxAdapter::new("postgres://casbin:casbin@127.0.0.1:5432/casbin", 8).await?;
     let e = Enforcer::new(m, a).await?;
 
     Ok(e)
@@ -59,11 +59,11 @@ async fn main() -> std::io::Result<()> {
 
     let graphql_schema = init_graphql(&identity_database);
 
-    let enforcer = Arc::new(
+    let enforcer = actix_web::web::Data::new(Mutex::new(
         init_casbin()
             .await
             .expect("could not create access policy enforcer"),
-    );
+    ));
 
     // let db = std::sync::Arc::new(identity_database);
 
@@ -82,7 +82,7 @@ async fn main() -> std::io::Result<()> {
                     // allow the cookie only from the current domain
                     .cookie_same_site(cookie::SameSite::Lax),
             )
-            .data(enforcer.clone())
+            .app_data(enforcer.clone())
             .data(identity_database.clone())
             .data(graphql_schema.clone())
             // GraphQL
@@ -99,6 +99,7 @@ async fn main() -> std::io::Result<()> {
                         .route("/user-info", get().to(user_info))
                         .route("/logout", get().to(logout))
                         .route("/is-authorized", get().to(is_authorized))
+                        .route("/add-policy", post().to(add_policy))
                         // .service(signup)
                         // .service(login)
                         // .service(user_info)
