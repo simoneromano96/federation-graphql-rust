@@ -1,18 +1,22 @@
 use actix_session::Session;
-use actix_web::web::Data;
+use actix_web::{client::Client, HttpRequest, HttpResponse, Result, web::{Data, Payload}};
+use actix_web_actors::ws;
 // use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
-use async_graphql_actix_web::{Request, Response};
+use async_graphql::Schema;
+use async_graphql_actix_web::{Request, Response, WSSubscription};
+use wither::bson::oid::ObjectId;
 
 use super::ProductsServiceSchema;
-use crate::models::User;
+// use crate::models::User;
 
 pub async fn index(
     schema: Data<ProductsServiceSchema>,
     // req: HttpRequest,
     gql_request: Request,
     session: Session,
+    // http_client: Data<Client>,
 ) -> Response {
-    let maybe_user: Option<User> = session.get("user").unwrap_or(None);
+    let maybe_user: Option<ObjectId> = session.get("user_id").unwrap_or(None);
 
     // println!("{:?}", maybe_user);
 
@@ -22,6 +26,19 @@ pub async fn index(
     }
 
     schema.execute(request).await.into()
+}
+
+pub async fn index_ws(
+    schema: Data<ProductsServiceSchema>,
+    req: HttpRequest,
+    payload: Payload,
+) -> Result<HttpResponse> {
+    ws::start_with_protocols(
+        WSSubscription::new(Schema::clone(&*schema)),
+        &["graphql-ws"],
+        &req,
+        payload,
+    )
 }
 
 /*

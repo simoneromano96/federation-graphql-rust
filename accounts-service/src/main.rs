@@ -13,7 +13,7 @@ use async_graphql::{
     EmptyMutation, EmptySubscription, Schema,
 };
 use authentication::routes::*;
-use authorization::{add_policy, is_authorized};
+use authorization::{add_policy, is_authorized, remove_policy};
 use graphql::{gql_playgound, index, IdentityServiceSchema, Query};
 use models::User;
 use paperclip::actix::{
@@ -100,6 +100,7 @@ async fn main() -> std::io::Result<()> {
                         .route("/logout", get().to(logout))
                         .route("/is-authorized", get().to(is_authorized))
                         .route("/add-policy", post().to(add_policy))
+                        .route("/remove-policy", post().to(remove_policy))
                         // .service(signup)
                         // .service(login)
                         // .service(user_info)

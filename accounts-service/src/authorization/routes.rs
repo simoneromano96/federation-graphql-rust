@@ -26,7 +26,7 @@ pub async fn is_authorized(
     // let sub = &permission_query.subject;
     let obj = &permission_query.object;
     let act = &permission_query.action;
-    let e = enforcer.lock().unwrap(); 
+    let e = enforcer.lock().unwrap();
 
     if let Some(user) = User::find_by_id(&db, &sub).await {
         let r = e.enforce((&user.role, obj, act));
@@ -44,28 +44,48 @@ pub async fn is_authorized(
     }
 }
 
-// #[get("/add-policy")]
+// #[post("/add-policy")]
 /// Add an access policy
 ///
 /// Should be a Basic Auth protected route
 ///
 #[api_v2_operation]
 pub async fn add_policy(
-    db: Data<MongoDatabase>,
     enforcer: Data<Mutex<Enforcer>>,
     permission_query: Json<PermissionQuery>,
 ) -> std::result::Result<HttpResponse, HttpResponse> {
     let sub = &permission_query.subject;
     let obj = &permission_query.object;
     let act = &permission_query.action;
-    let mut e = enforcer.lock().unwrap(); 
+    let mut e = enforcer.lock().unwrap();
 
     let added = e
-        .add_named_policy(
-            "p",
-            vec![sub.clone(), obj.clone(), act.clone()],
-        )
-        .await.expect("Cannot add policy");
+        .add_named_policy("p", vec![sub.clone(), obj.clone(), act.clone()])
+        .await
+        .expect("Cannot add policy");
 
     Ok(HttpResponse::Ok().body(format!("Added: {:?}", added)))
+}
+
+// #[post("/remove-policy")]
+/// Remove an access policy
+///
+/// Should be a Basic Auth protected route
+///
+#[api_v2_operation]
+pub async fn remove_policy(
+    enforcer: Data<Mutex<Enforcer>>,
+    permission_query: Json<PermissionQuery>,
+) -> std::result::Result<HttpResponse, HttpResponse> {
+    let sub = &permission_query.subject;
+    let obj = &permission_query.object;
+    let act = &permission_query.action;
+    let mut e = enforcer.lock().unwrap();
+
+    let removed = e
+        .remove_named_policy("p", vec![sub.clone(), obj.clone(), act.clone()])
+        .await
+        .expect("Cannot remove policy");
+
+    Ok(HttpResponse::Ok().body(format!("Added: {:?}", removed)))
 }

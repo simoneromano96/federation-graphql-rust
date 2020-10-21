@@ -4,17 +4,19 @@
 
 The services are:
 
-* accounts
+* user-management
+
+* (Access Control & Permission Management) acpm
 
 * products
 
 * reviews
 
-## Rust Identity & Access Management
+## User Management Service
 
 ### Requirements
 
-This service must implement: login; signup; logout; user-info; is-authorized endpoints.
+This service must implement: login; signup; logout; and user-info, should implement mail verification.
 
 This service must be a REST service and should be a GraphQL service where possible, every service must be documented (REST with OpenAPI and GraphQL with the builtin schema docs).
 
@@ -27,6 +29,28 @@ Routes details:
 * /user-info must give the user identity
 
 * /logout must destroy the user session
+
+### Libraries
+
+* actix-web
+
+* actix-redis
+
+* actix-session
+
+* rust-argon2
+
+* wither
+
+* paperclip
+
+* casbin
+
+## ACPM
+
+### Requirements
+
+This service must implement CRUD operations related to policies and roles of users.
 
 The following routes must be protected:
 
@@ -53,8 +77,6 @@ The following routes must be protected:
 * actix-session
 
 * rust-argon2
-
-* wither
 
 * paperclip
 
@@ -118,4 +140,4 @@ Turns out I didn't understand at all the entity concept, it is internally used b
 
 If I need to expose both an entity and a query that fetches that entity the code must be sadly duplicated as for Federation design.
 
-To handle subscriptions, since I already have redis, I will use the pub-sub interface of redis avoiding more useless dependencies.
+To handle subscriptions, since I already have redis, I will use the pub-sub interface of redis avoiding more dependencies.

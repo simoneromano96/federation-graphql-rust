@@ -2,13 +2,16 @@
 use serde::{Deserialize, Serialize};
 use wither::bson::{doc, oid::ObjectId};
 // use wither::mongodb::Client;
-use async_graphql::{self, Object, InputObject};
+use async_graphql::{self, Enum, InputObject, Object, ID};
 use url::Url;
 use wither::prelude::*;
 
 /// Define the Coffee Model
 #[derive(Clone, Debug, Model, Serialize, Deserialize)]
-#[model(collection_name = "coffees", index(keys = r#"doc!{"name": 1}"#, options = r#"doc!{"unique": true}"#))]
+#[model(
+    collection_name = "coffees",
+    index(keys = r#"doc!{"name": 1}"#, options = r#"doc!{"unique": true}"#)
+)]
 #[serde(rename_all = "camelCase")]
 pub struct Coffee {
     /// The ID of the model.
@@ -70,4 +73,28 @@ pub struct UpdateCoffeeInput {
     pub price: Option<f64>,
     pub image_url: Option<Url>,
     pub description: Option<String>,
+}
+
+#[derive(Debug, Enum, Eq, PartialEq, Copy, Clone, Deserialize, Serialize)]
+pub enum MutationType {
+    Created,
+    Updated,
+    Deleted,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CoffeeChanged {
+    pub id: ID,
+    pub mutation_type: MutationType,
+}
+
+#[Object]
+impl CoffeeChanged {
+    async fn id(&self) -> &ID {
+        &self.id
+    }
+
+    async fn mutation_type(&self) -> MutationType {
+        self.mutation_type
+    }
 }
