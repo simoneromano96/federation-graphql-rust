@@ -2,7 +2,7 @@ use actix_session::Session;
 use actix_web::{client::Client, HttpRequest, HttpResponse, Result, web::{Data, Payload}};
 use actix_web_actors::ws;
 // use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
-use async_graphql::Schema;
+use async_graphql::{Schema, http::{GraphQLPlaygroundConfig, playground_source}};
 use async_graphql_actix_web::{Request, Response, WSSubscription};
 use wither::bson::oid::ObjectId;
 
@@ -41,12 +41,10 @@ pub async fn index_ws(
     )
 }
 
-/*
 pub async fn gql_playgound() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(playground_source(
-            GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
+            GraphQLPlaygroundConfig::new("/graphql").subscription_endpoint("/graphql"),
         ))
 }
-*/

@@ -18,9 +18,12 @@ use actix_web::{
 use async_graphql::{extensions::ApolloTracing, EmptySubscription, Schema};
 // use async_graphql_actix_web::WSSubscription;
 // use std::sync::Arc;
-use graphql::{index, index_ws, Mutation, ProductsServiceSchema, Query};
+use graphql::{Mutation, ProductsServiceSchema, Query, Subscription, gql_playgound, index, index_ws};
 use models::Coffee;
 // use redis_async::client::pubsub_connect;
+use redis_async::{
+    client, client::paired::PairedConnection, client::PubsubConnection, resp::FromResp,
+};
 use wither::prelude::*;
 
 /*
@@ -47,7 +50,21 @@ async fn init() -> wither::mongodb::Database {
     products_database
 }
 
-async fn init_redis() -> redis::aio::Connection {
+async fn init_redis() -> (PairedConnection, PubsubConnection) {
+    let addr = "127.0.0.1:6379"
+        .parse()
+        .expect("Cannot parse Redis connection string");
+
+    (
+        client::paired_connect(&addr)
+            .await
+            .expect("Cannot open connection"),
+        client::pubsub_connect(&addr)
+            .await
+            .expect("Cannot connect to Redis"),
+    )
+
+    /*
     let client = redis::Client::open("redis://127.0.0.1/").expect("Cannot connect redis client");
 
     let redis_connection: redis::aio::Connection = client
@@ -57,22 +74,21 @@ async fn init_redis() -> redis::aio::Connection {
     // let pubsub_conn: redis::aio::PubSub = client.get_async_connection().await.expect("Cannot get redis connection").into_pubsub();
 
     redis_connection
+    */
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let db = init().await;
 
-    let mut redis_connection: redis::aio::Connection = init_redis().await;
+    let mut redis_connection = init_redis().await;
 
-
-    let schema: ProductsServiceSchema = Schema::build(Query, Mutation, EmptySubscription)
+    let schema: ProductsServiceSchema = Schema::build(Query, Mutation, Subscription)
         .data(db)
         .data(redis_connection)
         // .extension(ApolloTracing)
         .finish();
 
-    
     HttpServer::new(move || {
         App::new()
             // share GraphQL Schema
@@ -98,9 +114,7 @@ async fn main() -> std::io::Result<()> {
                     .guard(guard::Header("upgrade", "websocket"))
                     .to(index_ws),
             )
-        /*
-        .service(web::resource("/playground").guard(guard::Get()).to(index_playground))
-        */
+        .service(web::resource("/playground").guard(guard::Get()).to(gql_playgound))
     })
     .bind("0.0.0.0:4002")?
     .run()

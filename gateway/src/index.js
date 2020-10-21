@@ -8,7 +8,6 @@ const gateway = Fastify()
 const main = async () => {
   gateway.register(mercurius, {
     graphiql: "playground",
-    subscription: true,
     federationMetadata: true,
     allowBatchedQueries: true,
     pollingInterval: 2000,

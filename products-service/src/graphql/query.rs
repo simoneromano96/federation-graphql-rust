@@ -1,20 +1,29 @@
-use async_graphql::{Context, Object, Result, ID, Subscription};
 use async_graphql::guard::Guard;
-use redis::{AsyncCommands, aio::Connection};
+use async_graphql::{Context, Object, Result, Subscription, ID};
+use redis_async::{
+    client::{PairedConnection, PubsubConnection},
+    resp::FromResp,
+    resp_array,
+};
 // use redis_async::{client::PubsubConnection, resp::FromResp};
 // use nanoid::nanoid;
 // use serde::ser::SerializeStruct;
 // use bson::doc;
-use crate::{authorization::{PermissionGuard, Permission}, models::coffee::CoffeeChanged, models::coffee::MutationType};
 use crate::models::{Coffee, CreateCoffeeInput, UpdateCoffeeInput};
+use crate::{
+    authorization::{Permission, PermissionGuard},
+    models::coffee::CoffeeChanged,
+    models::coffee::MutationType,
+};
 // use futures::{Stream, StreamExt};
+use serde_json;
 use wither::prelude::*;
 use wither::{
     bson::{doc, oid::ObjectId},
     mongodb::Database,
 };
 // use std::iter::Iterator;
-use futures::{Stream, stream::StreamExt};
+use futures::{stream::StreamExt, Stream};
 
 pub struct Query;
 
@@ -42,7 +51,11 @@ async fn fetch_coffee_by_id(db: &Database, id: String) -> Result<Coffee> {
     }
 }
 
-async fn create_coffee(db: &Database, redis_connection: &Connection, input: CreateCoffeeInput) -> Result<Coffee> {
+async fn create_coffee(
+    db: &Database,
+    redis_connection: &PairedConnection,
+    input: CreateCoffeeInput,
+) -> Result<Coffee> {
     let mut coffee = Coffee {
         id: None,
         name: input.name,
@@ -52,6 +65,15 @@ async fn create_coffee(db: &Database, redis_connection: &Connection, input: Crea
     };
 
     coffee.save(db, None).await?;
+
+    let message = CoffeeChanged {
+        mutation_type: MutationType::Created,
+        id: ID::from(coffee.id.clone().unwrap().to_string()),
+    };
+
+    let json = serde_json::to_string(&message)?;
+
+    redis_connection.send_and_forget(resp_array!["PUBLISH", "coffees", &json]);
 
     // redis_connection.publish("wavephone", "banana").await?;
 
@@ -70,26 +92,25 @@ async fn update_coffee(db: &Database, input: UpdateCoffeeInput) -> Result<Coffee
         "_id": ObjectId::with_string(&id)?
     };
 
-    if let Some(mut coffee) = Coffee::find_one(db, Some(query), None)
-    .await? {
+    if let Some(mut coffee) = Coffee::find_one(db, Some(query), None).await? {
         if let Some(name) = input.name {
             coffee.name = name;
         }
-    
+
         if let Some(price) = input.price {
             coffee.price = price;
         }
-    
+
         if let Some(description) = input.description {
             coffee.description = Some(description);
         }
-    
+
         if let Some(image_url) = input.image_url {
             coffee.image_url = image_url.to_string();
         }
-    
+
         coffee.save(db, None).await?;
-    
+
         Ok(coffee)
     } else {
         Err(format!("Coffee with id: {:?} not found", id).into())
@@ -135,6 +156,19 @@ impl Query {
         let db: &Database = ctx.data()?;
         fetch_coffee_by_id(db, id.to_string()).await
     }
+
+    /// Returns a coffee by its ID, will return error if none is present with the given ID
+    /*
+    #[graphql(entity)]
+    async fn coffee_changed(&self, ctx: &Context<'_>, _id: ID) -> Result<CoffeeChanged> {
+        Ok(
+            CoffeeChanged {
+                id: "asdfasdf".into(),
+                mutation_type: MutationType::Created,
+            }
+        )
+    }
+    */
 }
 
 pub struct Mutation;
@@ -145,8 +179,9 @@ impl Mutation {
     #[graphql(guard(PermissionGuard(permission = "Permission::CreateCoffee")))]
     async fn create_coffee(&self, ctx: &Context<'_>, input: CreateCoffeeInput) -> Result<Coffee> {
         // let redis_pubsub_connection: &PubsubConnection = ctx.data()?;
-        let redis_connection: &Connection = ctx.data()?; 
+        let (redis_connection, _): &(PairedConnection, PubsubConnection) = ctx.data()?;
         let db: &Database = ctx.data()?;
+
         create_coffee(db, redis_connection, input).await
     }
 
@@ -165,7 +200,6 @@ impl Mutation {
     }
 }
 
-/*
 pub struct Subscription;
 
 #[Subscription]
@@ -175,16 +209,19 @@ impl Subscription {
         ctx: &Context<'_>,
         mutation_type: Option<MutationType>,
     ) -> impl Stream<Item = CoffeeChanged> {
-        // println!("subscription");
-        let redis_pubsub_connection: &PubsubConnection = ctx.data().unwrap();
+        let (_, pubsub_connection): &(PairedConnection, PubsubConnection) = ctx.data().unwrap();
 
-        let msgs = redis_pubsub_connection.subscribe("coffees").await.unwrap();
+        let msgs = pubsub_connection
+            .subscribe("coffees")
+            .await
+            .expect("Cannot subscribe to topic");
 
         msgs.filter_map(move |e| {
             let mut res = None;
             if let Ok(resp) = e {
                 if let Some(mutation_type) = mutation_type {
-                    let msg: CoffeeChanged = serde_json::from_str(&(String::from_resp(resp).unwrap())).unwrap();
+                    let msg: CoffeeChanged =
+                        serde_json::from_str(&(String::from_resp(resp).unwrap())).unwrap();
                     if msg.mutation_type == mutation_type {
                         res = Some(msg)
                     }
@@ -202,4 +239,3 @@ impl Subscription {
         // })
     }
 }
-*/

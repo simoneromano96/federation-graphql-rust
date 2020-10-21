@@ -16,7 +16,7 @@ actix-session = "^0.4.0"
 # Redis Session
 actix-redis = "^0.9.1"
 # Redis client (PUB SUB)
-redis = { version = "0.17.0", features = ["tokio-comp"] }
+redis-async = "0.6.3"
 # Serialization/Deserialization
 serde = "^1.0.116"
 # JSON Serialization/Deserialization
