@@ -12,18 +12,21 @@ const main = async () => {
     allowBatchedQueries: true,
     pollingInterval: 2000,
     persistedQueryProvider: mercurius.persistedQueryDefaults.automatic(5000),
+    subscription: true,
+    jit: 1,
     gateway: {
       services: [
-        {
-          name: 'accounts',
-          url: 'http://127.0.0.1:4001/graphql',
-          // mandatory: true,
-          // Forward all headers
-          rewriteHeaders: (headers) => headers,
-        },
+        // {
+        //   name: 'accounts',
+        //   url: 'http://127.0.0.1:4001/graphql',
+        //   // mandatory: true,
+        //   // Forward all headers
+        //   rewriteHeaders: (headers) => headers,
+        // },
         {
           name: 'products',
           url: 'http://127.0.0.1:4002/graphql',
+          wsUrl: 'ws://127.0.0.1:4002/graphql',
           // Forward all headers
           rewriteHeaders: (headers) => headers,
         }
@@ -39,6 +42,7 @@ const main = async () => {
   await gateway.listen(config.gateway.port);
   
   console.log("API Gateway available at http://localhost:4000/graphql")
+  console.log("Playground available at http://localhost:4000/playground")
 }
 
 main()

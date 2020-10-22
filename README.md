@@ -4,9 +4,13 @@
 
 The services are:
 
+* graphql gateway
+
 * user-management
 
 * (Access Control & Permission Management) acpm
+
+* subscriptions
 
 * products
 
@@ -141,3 +145,5 @@ Turns out I didn't understand at all the entity concept, it is internally used b
 If I need to expose both an entity and a query that fetches that entity the code must be sadly duplicated as for Federation design.
 
 To handle subscriptions, since I already have redis, I will use the pub-sub interface of redis avoiding more dependencies.
+
+Subscriptions are not supported by federation yet, this means that I have to create a new service for the subscriptions.

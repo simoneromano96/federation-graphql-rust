@@ -16,7 +16,7 @@ actix-session = "^0.4.0"
 # Redis Session
 actix-redis = "^0.9.1"
 # Redis client (PUB SUB)
-redis-async = "0.6.3"
+redis-async = "^0.6.3"
 # Serialization/Deserialization
 serde = "^1.0.116"
 # JSON Serialization/Deserialization
@@ -28,8 +28,8 @@ async-graphql = { version = "^2.0.4", features = ["apollo_tracing"] }
 # GraphQL Actix Adapter
 async-graphql-actix-web = "^2.0.4"
 # Type-safe URLs
-url = "2.1.1"
+url = "^2.1.1"
 # Futures traits and methods
-futures = "0.3.5"
+futures = "^0.3.5"
 # HTTP Client
-reqwest = "0.10.8"
+reqwest = { version = "^0.10.8", default-features = false, features = ["rustls-tls"] }
