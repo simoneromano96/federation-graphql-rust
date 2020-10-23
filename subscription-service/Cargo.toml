@@ -1,0 +1,25 @@
+[package]
+name = "subscription-service"
+version = "0.1.0"
+authors = ["Simone Romano <simone.romano@noku.io>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# HTTP Server
+actix-web = "^3.0.2"
+# WebSocket extensions
+actix-web-actors = "3.0.0"
+# Redis client (PUB SUB)
+redis-async = "^0.6.3"
+# Serialization/Deserialization
+serde = "^1.0.116"
+# JSON Serialization/Deserialization
+serde_json = "1.0.59"
+# GraphQL implementation
+async-graphql = { version = "^2.0.4", features = ["apollo_tracing"] }
+# GraphQL Actix Adapter
+async-graphql-actix-web = "^2.0.4"
+# Futures traits and methods
+futures = "^0.3.5"
