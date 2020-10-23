@@ -16,4 +16,4 @@ COPY --from=builder /usr/local/cargo/bin/products-service /products-service
 
 COPY ./environments/* /products-service/environments
 
-CMD ["products-service"]
+CMD ["/products-service/products-service"]
