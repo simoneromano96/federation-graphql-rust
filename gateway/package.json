@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fastify": "^3.5.1",
-    "graphql": "^14.7.0",
-    "mercurius": "^6.0.0"
+    "fastify": "^3.7.0",
+    "graphql": "^15.3.0",
+    "mercurius": "~6.3.0"
   }
 }
