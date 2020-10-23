@@ -25,7 +25,6 @@ use wither::{
 // use std::iter::Iterator;
 use futures::{stream::StreamExt, Stream};
 
-pub struct Query;
 
 async fn fetch_all_coffees(db: &Database) -> Result<Vec<Coffee>> {
     let mut coffees: Vec<Coffee> = Vec::new();
@@ -136,6 +135,8 @@ async fn delete_coffee(db: &Database, id: String) -> Result<Coffee> {
     }
 }
 
+pub struct Query;
+
 #[Object(extends)]
 impl Query {
     /// Returns an array with all the coffees or an empty array
@@ -157,8 +158,6 @@ impl Query {
         fetch_coffee_by_id(db, id.to_string()).await
     }
 
-    /// Returns a coffee by its ID, will return error if none is present with the given ID
-    /*
     #[graphql(entity)]
     async fn coffee_changed(&self, ctx: &Context<'_>, _id: ID) -> Result<CoffeeChanged> {
         Ok(
@@ -168,12 +167,11 @@ impl Query {
             }
         )
     }
-    */
 }
 
 pub struct Mutation;
 
-#[Object(extends)]
+#[Object(extends, cache_control(max_age = 60))]
 impl Mutation {
     /// Creates a new coffee
     #[graphql(guard(PermissionGuard(permission = "Permission::CreateCoffee")))]

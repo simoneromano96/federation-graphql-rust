@@ -146,4 +146,8 @@ If I need to expose both an entity and a query that fetches that entity the code
 
 To handle subscriptions, since I already have redis, I will use the pub-sub interface of redis avoiding more dependencies.
 
-Subscriptions are not supported by federation yet, this means that I have to create a new service for the subscriptions.
+Subscriptions are not supported by federation yet, but mercurius supports them, this means that I have to create a new service for the subscriptions or migrate everything to mercurius, since migrating from Rust to JS is fast I'll first try the create a new service and then I'll move all the services to JS and see if there is an appreciable difference in performances.
+
+I should also see why it does not work, it could just be a matter of changing the generated schema of `async-graphql` adding "extend".
+
+For now the ACPM and Accounts service are merged, I feel like detatching them is over-engineering.
