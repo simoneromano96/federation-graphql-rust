@@ -1,0 +1,9 @@
+version: "3.6"
+
+services:
+  products:
+    build:
+      context: .
+      dockerfile: ./.docker/products-service.dockerfile
+    ports:
+      - "4003:4003"

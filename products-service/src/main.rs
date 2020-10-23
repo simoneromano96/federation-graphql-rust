@@ -1,12 +1,12 @@
-#![feature(associated_type_bounds)]
-#![feature(async_closure)]
-
 mod authorization;
+mod config;
 mod graphql;
 mod models;
 mod utils;
 
 // use crate::graphql::coffee::{CoffeeSchema, MutationRoot, QueryRoot, SubscriptionRoot};
+use std::net::SocketAddr;
+
 use actix_redis::RedisSession;
 use actix_web::{
     cookie, guard, middleware,
@@ -18,9 +18,13 @@ use actix_web::{
 use async_graphql::{extensions::ApolloTracing, EmptySubscription, Schema};
 // use async_graphql_actix_web::WSSubscription;
 // use std::sync::Arc;
-use graphql::{Mutation, ProductsServiceSchema, Query, Subscription, gql_playgound, index, index_ws};
+use graphql::{
+    gql_playgound, index, index_ws, Mutation, ProductsServiceSchema, Query, Subscription,
+};
 use models::Coffee;
 // use redis_async::client::pubsub_connect;
+use crate::config::APP_CONFIG;
+use pretty_env_logger;
 use redis_async::{
     client, client::paired::PairedConnection, client::PubsubConnection, resp::FromResp,
 };
@@ -34,11 +38,11 @@ pub struct AppData {
 }
 */
 
-async fn init() -> wither::mongodb::Database {
+async fn init_mongo() -> wither::mongodb::Database {
     use wither::mongodb::Client;
 
     // Connect to the database.
-    let products_database = Client::with_uri_str("mongodb://root:example@localhost:27017/admin")
+    let products_database = Client::with_uri_str(&APP_CONFIG.mongo.connection_string)
         .await
         .expect("Cannot connect to the db")
         .database("products-service");
@@ -51,7 +55,7 @@ async fn init() -> wither::mongodb::Database {
 }
 
 async fn init_redis() -> (PairedConnection, PubsubConnection) {
-    let addr = "127.0.0.1:6379"
+    let addr = format!("{}:{}", APP_CONFIG.redis.host, APP_CONFIG.redis.port)
         .parse()
         .expect("Cannot parse Redis connection string");
 
@@ -79,9 +83,10 @@ async fn init_redis() -> (PairedConnection, PubsubConnection) {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let db = init().await;
-
-    let mut redis_connection = init_redis().await;
+    pretty_env_logger::init();
+    
+    let db = init_mongo().await;
+    let redis_connection = init_redis().await;
 
     let schema: ProductsServiceSchema = Schema::build(Query, Mutation, Subscription)
         .data(db)
@@ -97,11 +102,14 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             // cookie session middleware
             .wrap(
-                RedisSession::new("127.0.0.1:6379", b"N7WoK3mG7lSb0CpK8UhAabUZNi27n5ub")
-                    // Don't allow the cookie to be accessed from javascript
-                    .cookie_http_only(true)
-                    // allow the cookie only from the current domain
-                    .cookie_same_site(cookie::SameSite::Lax),
+                RedisSession::new(
+                    format!("{:?}:{:?}", APP_CONFIG.redis.host, APP_CONFIG.redis.port),
+                    APP_CONFIG.session.secret.as_bytes(),
+                )
+                // Don't allow the cookie to be accessed from javascript
+                .cookie_http_only(true)
+                // allow the cookie only from the current domain
+                .cookie_same_site(cookie::SameSite::Lax),
             )
             // CORS
             // .wrap(Cors::default())
@@ -114,9 +122,9 @@ async fn main() -> std::io::Result<()> {
                     .guard(guard::Header("upgrade", "websocket"))
                     .to(index_ws),
             )
-        .service(web::resource("/playground").guard(guard::Get()).to(gql_playgound))
+        // .service(web::resource("/playground").guard(guard::Get()).to(gql_playgound))
     })
-    .bind("0.0.0.0:4002")?
+    .bind(format!("0.0.0.0:{:?}", APP_CONFIG.server.port))?
     .run()
     .await
 }

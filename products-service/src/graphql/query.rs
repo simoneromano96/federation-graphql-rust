@@ -24,9 +24,10 @@ use wither::{
 };
 // use std::iter::Iterator;
 use futures::{stream::StreamExt, Stream};
-
+use log::info;
 
 async fn fetch_all_coffees(db: &Database) -> Result<Vec<Coffee>> {
+    info!("Fetching all coffees");
     let mut coffees: Vec<Coffee> = Vec::new();
 
     let mut cursor = Coffee::find(db, None, None).await?;
@@ -39,6 +40,8 @@ async fn fetch_all_coffees(db: &Database) -> Result<Vec<Coffee>> {
 }
 
 async fn fetch_coffee_by_id(db: &Database, id: String) -> Result<Coffee> {
+    info!("Fetching a coffee with id: {:?}", id);
+
     let query = doc! {
         "_id": ObjectId::with_string(&id)?,
     };
