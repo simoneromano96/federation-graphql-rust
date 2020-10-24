@@ -6,6 +6,8 @@ use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use wither::bson::oid::ObjectId;
 
+use crate::config::APP_CONFIG;
+
 use crate::utils::http_client::get_http_client;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -23,6 +25,8 @@ pub struct PermissionGuard {
 #[async_trait]
 impl Guard for PermissionGuard {
     async fn check(&self, ctx: &Context<'_>) -> Result<()> {
+        let client: &reqwest::Client = ctx.data().unwrap();
+        
         if let Some(user_id) = ctx.data_opt::<ObjectId>() {
             // let client = get_http_client();
             // let r = client.get(url).send().await;
@@ -46,25 +50,23 @@ impl Guard for PermissionGuard {
                 }
             }
 
-            let client = get_http_client();
-            
-            // TODO: find a way to share a client
-            let request = client.get("http://127.0.0.1:4001/api/v1/is-authorized")
+            let request = client
+                .get(&APP_CONFIG.authorization_server.url)
                 .query(&[
-                    ("subject", String::from(subject)), 
-                    ("action", String::from(action)), 
-                    ("object", String::from(object))
+                    ("subject", String::from(subject)),
+                    ("action", String::from(action)),
+                    ("object", String::from(object)),
                 ])
                 .build()?;
 
             let res = client.execute(request).await?;
 
             // println!("{:?}", res);
-            
+
             let status = res.status();
             match status {
                 StatusCode::OK => Ok(()),
-                _ => Err("Cannot access resource".into())
+                _ => Err("Cannot access resource".into()),
             }
         } else {
             Err("Must be authenticated".into())

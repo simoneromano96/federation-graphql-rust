@@ -45,7 +45,7 @@ pub struct BasicAuthConfig {
 #[serde(rename_all = "camelCase")]
 pub struct AuthorizationServerConfig {
     pub basic_auth: BasicAuthConfig,
-    pub url: Url
+    pub url: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -16,6 +16,7 @@ use actix_web::{
 // use actix_cors::Cors;
 // use actix_web_actors::ws;
 use async_graphql::{extensions::ApolloTracing, EmptySubscription, Schema};
+use base64;
 // use async_graphql_actix_web::WSSubscription;
 // use std::sync::Arc;
 use graphql::{
@@ -28,6 +29,7 @@ use pretty_env_logger;
 use redis_async::{
     client, client::paired::PairedConnection, client::PubsubConnection, resp::FromResp,
 };
+use reqwest::{header, Client, ClientBuilder};
 use wither::prelude::*;
 
 /*
@@ -81,16 +83,38 @@ async fn init_redis() -> (PairedConnection, PubsubConnection) {
     */
 }
 
+fn init_http_client() -> reqwest::Client {
+    let mut headers = header::HeaderMap::new();
+    let basic_decoded = format!(
+        "Basic {}:{}",
+        APP_CONFIG.authorization_server.basic_auth.username,
+        APP_CONFIG.authorization_server.basic_auth.password
+    );
+    let basic_auth_header_value = base64::encode(basic_decoded);
+
+    headers.insert(
+        header::AUTHORIZATION,
+        header::HeaderValue::from_str(&basic_auth_header_value).expect("Invalid header value"),
+    );
+
+    ClientBuilder::new()
+        .default_headers(headers)
+        .build()
+        .expect("Could not create http client")
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
-    
+
     let db = init_mongo().await;
     let redis_connection = init_redis().await;
+    let http_client = init_http_client();
 
     let schema: ProductsServiceSchema = Schema::build(Query, Mutation, Subscription)
         .data(db)
         .data(redis_connection)
+        .data(http_client)
         // .extension(ApolloTracing)
         .finish();
 

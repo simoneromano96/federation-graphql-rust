@@ -40,3 +40,5 @@ lazy_static = "1.4.0"
 # Loggers
 pretty_env_logger = "0.4.0"
 log = "0.4.11"
+# Base64 encode/decode
+base64 = "0.13.0"
