@@ -53,17 +53,20 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(enforcer.clone())
             .app_data(pool.clone())
-            .wrap(auth)
+            // .wrap(auth)
             .wrap_api()
             .service(
-                scope("/api").service(
-                    scope("/v1").service(
-                        scope("/authorization")
-                            .route("/is-authorized", get().to(is_authorized))
-                            .route("/add-policy", post().to(add_policy))
-                            .route("/remove-policy", post().to(remove_policy)),
+                scope("/api")
+                    // Protect the following routes with Basic Auth
+                    .wrap(auth)
+                    .service(
+                        scope("/v1").service(
+                            scope("/authorization")
+                                .route("/is-authorized", get().to(is_authorized))
+                                .route("/add-policy", post().to(add_policy))
+                                .route("/remove-policy", post().to(remove_policy)),
+                        ),
                     ),
-                ),
             )
             // Mount the JSON spec at this path.
             .with_json_spec_at("/openapi")

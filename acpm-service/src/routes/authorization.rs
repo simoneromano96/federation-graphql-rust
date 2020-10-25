@@ -9,7 +9,7 @@ use std::sync::Mutex;
 // #[get("/is-authorized")]
 /// Is authorized
 ///
-/// Should be a Basic Auth protected route
+/// Basic Auth protected route
 /// Gives back if a user (subject) can do something (action) to something else (object)
 #[api_v2_operation]
 pub async fn is_authorized(
@@ -36,8 +36,8 @@ pub async fn is_authorized(
 // #[post("/add-policy")]
 /// Add an access policy
 ///
-/// Should be a Basic Auth protected route
-///
+/// Basic Auth protected route
+/// Adds an access policy
 #[api_v2_operation]
 pub async fn add_policy(
     enforcer: Data<Mutex<Enforcer>>,
@@ -59,8 +59,8 @@ pub async fn add_policy(
 // #[post("/remove-policy")]
 /// Remove an access policy
 ///
-/// Should be a Basic Auth protected route
-///
+/// Basic Auth protected route
+/// Removes an access policy
 #[api_v2_operation]
 pub async fn remove_policy(
     enforcer: Data<Mutex<Enforcer>>,
