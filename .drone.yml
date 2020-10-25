@@ -10,4 +10,5 @@ steps:
       password: 
         from_secret: token
       repo: federation-graphql-rust/products-service
+      context: ./products-service
       dockerfile: ./products-service/.docker/products-service.dockerfile
