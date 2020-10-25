@@ -1,0 +1,21 @@
+[package]
+name = "acpm-service"
+version = "0.1.0"
+authors = ["Simone Romano <simoneromano@tutanota.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# HTTP Server
+actix-web = "3.1.0"
+# Basic auth
+actix-web-httpauth = "0.5.0"
+# Serialization/Deserialization
+serde = "1.0.117"
+# OpenAPI specification with Actix
+paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features = ["actix3-nightly"] }
+# SQLx
+sqlx = { version = "0.3.5", default-features = false, features = [ "runtime-tokio", "macros", "postgres" ] }
+# Authorization enforcer policies with Adapter for SQLx
+sqlx-adapter = { version = "0.3.0", features = ["postgres"] }
