@@ -5,10 +5,11 @@ steps:
   - name: products-service
     image: plugins/docker
     settings:
+      target: production
       registry: ghcr.io
       username: simoneromano96
       password: 
         from_secret: token
-      repo: federation-graphql-rust/products-service
+      repo: ghcr.io/federation-graphql-rust/products-service
       context: ./products-service
       dockerfile: ./products-service/.docker/products-service.dockerfile
