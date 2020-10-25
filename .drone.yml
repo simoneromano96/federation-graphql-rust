@@ -11,6 +11,6 @@ steps:
         from_secret: token
         repo: ghcr.io/simoneromano96/federation-graphql-rust/products-service
         context: ./products-service
-        dockerfile: ./.docker/products-service.dockerfile
+        dockerfile: ./products-service./.docker/products-service.dockerfile
         auto_tag: true
         target: production
