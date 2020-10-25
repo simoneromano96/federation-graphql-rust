@@ -16,7 +16,7 @@ const CLIENT_QUERY: &str = r#"
 "#;
 
 async fn validate_credentials(pool: &Pool<Postgres>, client_id: &str, client_secret: &str) -> bool {
-    // println!("Authenticating: {:?} - {:?}", client_id, client_secret);
+    println!("Authenticating: {:?} - {:?}", client_id, client_secret);
 
     let client: Option<AuthClient> = sqlx::query_as::<_, AuthClient>(CLIENT_QUERY)
         .bind(client_id)
@@ -25,7 +25,7 @@ async fn validate_credentials(pool: &Pool<Postgres>, client_id: &str, client_sec
         .await
         .unwrap();
 
-    // println!("{:?}", client);
+    println!("{:?}", client);
 
     if let Some(_) = client {
         true
@@ -38,6 +38,8 @@ pub async fn basic_auth_validator(
     req: ServiceRequest,
     credentials: BasicAuth,
 ) -> Result<ServiceRequest, Error> {
+    println!("Requested basic auth");
+    
     let config = req
         .app_data::<Config>()
         .map(|data| data.clone())

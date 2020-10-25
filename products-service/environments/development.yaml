@@ -16,6 +16,6 @@ server:
 # Authorization server
 authorizationServer:
   basicAuth:
-    username: ''
-    password: ''
-  url: http://127.0.0.1:4001/api/v1/is-authorized
+    username: "products-service"
+    password: "password"
+  url: http://127.0.0.1:3999/api/v1/authorization/is-authorized

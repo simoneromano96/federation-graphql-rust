@@ -2,34 +2,21 @@ mod authorization;
 mod config;
 mod graphql;
 mod models;
-mod utils;
 
-// use crate::graphql::coffee::{CoffeeSchema, MutationRoot, QueryRoot, SubscriptionRoot};
-use std::net::SocketAddr;
-
+use crate::config::APP_CONFIG;
 use actix_redis::RedisSession;
 use actix_web::{
     cookie, guard, middleware,
     web::{self, post},
     App, HttpServer,
 };
-// use actix_cors::Cors;
-// use actix_web_actors::ws;
-use async_graphql::{extensions::ApolloTracing, EmptySubscription, Schema};
+use async_graphql::{EmptySubscription, Schema};
 use base64;
-// use async_graphql_actix_web::WSSubscription;
-// use std::sync::Arc;
-use graphql::{
-    gql_playgound, index, index_ws, Mutation, ProductsServiceSchema, Query, Subscription,
-};
+use graphql::{index, index_ws, Mutation, ProductsServiceSchema, Query};
 use models::Coffee;
-// use redis_async::client::pubsub_connect;
-use crate::config::APP_CONFIG;
 use pretty_env_logger;
-use redis_async::{
-    client, client::paired::PairedConnection, client::PubsubConnection, resp::FromResp,
-};
-use reqwest::{header, Client, ClientBuilder};
+use redis_async::client::paired::PairedConnection;
+use reqwest::{header, ClientBuilder};
 use wither::prelude::*;
 
 /*
@@ -56,46 +43,33 @@ async fn init_mongo() -> wither::mongodb::Database {
     products_database
 }
 
-async fn init_redis() -> (PairedConnection, PubsubConnection) {
+async fn init_redis() -> PairedConnection {
+    use redis_async::client;
+
     let addr = format!("{}:{}", APP_CONFIG.redis.host, APP_CONFIG.redis.port)
         .parse()
         .expect("Cannot parse Redis connection string");
 
-    (
-        client::paired_connect(&addr)
-            .await
-            .expect("Cannot open connection"),
-        client::pubsub_connect(&addr)
-            .await
-            .expect("Cannot connect to Redis"),
-    )
-
-    /*
-    let client = redis::Client::open("redis://127.0.0.1/").expect("Cannot connect redis client");
-
-    let redis_connection: redis::aio::Connection = client
-        .get_async_connection()
+    client::paired_connect(&addr)
         .await
-        .expect("Cannot get redis connection");
-    // let pubsub_conn: redis::aio::PubSub = client.get_async_connection().await.expect("Cannot get redis connection").into_pubsub();
-
-    redis_connection
-    */
+        .expect("Cannot open connection")
 }
 
 fn init_http_client() -> reqwest::Client {
     let mut headers = header::HeaderMap::new();
-    let basic_decoded = format!(
-        "Basic {}:{}",
+    let basic_credentials = format!(
+        "{}:{}",
         APP_CONFIG.authorization_server.basic_auth.username,
         APP_CONFIG.authorization_server.basic_auth.password
     );
-    let basic_auth_header_value = base64::encode(basic_decoded);
+    let basic_auth_header_value = format!("Basic {}", base64::encode(basic_credentials));
 
     headers.insert(
         header::AUTHORIZATION,
         header::HeaderValue::from_str(&basic_auth_header_value).expect("Invalid header value"),
     );
+
+    // println!("{:?}", headers);
 
     ClientBuilder::new()
         .default_headers(headers)
@@ -111,7 +85,7 @@ async fn main() -> std::io::Result<()> {
     let redis_connection = init_redis().await;
     let http_client = init_http_client();
 
-    let schema: ProductsServiceSchema = Schema::build(Query, Mutation, Subscription)
+    let schema: ProductsServiceSchema = Schema::build(Query, Mutation, EmptySubscription)
         .data(db)
         .data(redis_connection)
         .data(http_client)

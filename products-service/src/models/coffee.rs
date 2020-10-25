@@ -1,9 +1,7 @@
-// use futures::stream::StreamExt;
-use serde::{Deserialize, Serialize};
-use wither::bson::{doc, oid::ObjectId};
-// use wither::mongodb::Client;
 use async_graphql::{self, Enum, InputObject, Object, ID};
+use serde::{Deserialize, Serialize};
 use url::Url;
+use wither::bson::{doc, oid::ObjectId};
 use wither::prelude::*;
 
 /// Define the Coffee Model

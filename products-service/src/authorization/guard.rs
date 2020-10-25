@@ -1,18 +1,14 @@
-// use crate::models::User;
+use crate::config::APP_CONFIG;
 use async_graphql::{async_trait, guard::Guard};
 use async_graphql::{Context, Result};
 use async_trait::async_trait;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use wither::bson::oid::ObjectId;
-
-use crate::config::APP_CONFIG;
-
-use crate::utils::http_client::get_http_client;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Permission {
     CreateCoffee,
+    ReadCoffee,
     UpdateCoffee,
     DeleteCoffee,
     // Other(String),
@@ -26,11 +22,9 @@ pub struct PermissionGuard {
 impl Guard for PermissionGuard {
     async fn check(&self, ctx: &Context<'_>) -> Result<()> {
         let client: &reqwest::Client = ctx.data().unwrap();
-        
-        if let Some(user_id) = ctx.data_opt::<ObjectId>() {
-            // let client = get_http_client();
-            // let r = client.get(url).send().await;
-            let subject = &user_id.to_string();
+
+        if let Some(user_role) = ctx.data_opt::<String>() {
+            let subject = user_role;
             let action;
             let object;
 
@@ -39,6 +33,10 @@ impl Guard for PermissionGuard {
                 Permission::CreateCoffee => {
                     object = "coffee";
                     action = "create";
+                }
+                Permission::ReadCoffee => {
+                    object = "coffee";
+                    action = "read";
                 }
                 Permission::UpdateCoffee => {
                     object = "coffee";
@@ -49,6 +47,9 @@ impl Guard for PermissionGuard {
                     action = "delete";
                 }
             }
+
+            // println!("Requesting access to resource");
+            // println!("{:?}::{:?}::{:?}", subject, action, object);
 
             let request = client
                 .get(&APP_CONFIG.authorization_server.url)
@@ -61,7 +62,7 @@ impl Guard for PermissionGuard {
 
             let res = client.execute(request).await?;
 
-            // println!("{:?}", res);
+            // println!("Authorized response: {:?}", res);
 
             let status = res.status();
             match status {

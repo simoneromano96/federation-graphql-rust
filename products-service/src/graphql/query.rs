@@ -1,30 +1,23 @@
-use async_graphql::guard::Guard;
-use async_graphql::{Context, Object, Result, Subscription, ID};
-use redis_async::{
-    client::{PairedConnection, PubsubConnection},
-    resp::FromResp,
-    resp_array,
-};
-// use redis_async::{client::PubsubConnection, resp::FromResp};
-// use nanoid::nanoid;
-// use serde::ser::SerializeStruct;
-// use bson::doc;
 use crate::models::{Coffee, CreateCoffeeInput, UpdateCoffeeInput};
 use crate::{
     authorization::{Permission, PermissionGuard},
     models::coffee::CoffeeChanged,
     models::coffee::MutationType,
 };
-// use futures::{Stream, StreamExt};
+use async_graphql::guard::Guard;
+use async_graphql::{Context, Object, Result, ID};
+use futures::{stream::StreamExt};
+use log::info;
+use redis_async::{
+    client::{PairedConnection},
+    resp_array,
+};
 use serde_json;
 use wither::prelude::*;
 use wither::{
     bson::{doc, oid::ObjectId},
     mongodb::Database,
 };
-// use std::iter::Iterator;
-use futures::{stream::StreamExt, Stream};
-use log::info;
 
 async fn fetch_all_coffees(db: &Database) -> Result<Vec<Coffee>> {
     info!("Fetching all coffees");
@@ -140,15 +133,17 @@ async fn delete_coffee(db: &Database, id: String) -> Result<Coffee> {
 
 pub struct Query;
 
-#[Object(extends)]
+#[Object(extends, cache_control(max_age = 60))]
 impl Query {
     /// Returns an array with all the coffees or an empty array
+    #[graphql(guard(PermissionGuard(permission = "Permission::ReadCoffee")))]
     async fn coffees(&self, ctx: &Context<'_>) -> Result<Vec<Coffee>> {
         let db: &Database = ctx.data()?;
         fetch_all_coffees(db).await
     }
 
     /// Returns a coffee by its ID, will return error if none is present with the given ID
+    #[graphql(guard(PermissionGuard(permission = "Permission::ReadCoffee")))]
     async fn coffee(&self, ctx: &Context<'_>, id: ID) -> Result<Coffee> {
         let db: &Database = ctx.data()?;
         fetch_coffee_by_id(db, id.to_string()).await
@@ -160,16 +155,6 @@ impl Query {
         let db: &Database = ctx.data()?;
         fetch_coffee_by_id(db, id.to_string()).await
     }
-
-    #[graphql(entity)]
-    async fn coffee_changed(&self, ctx: &Context<'_>, _id: ID) -> Result<CoffeeChanged> {
-        Ok(
-            CoffeeChanged {
-                id: "asdfasdf".into(),
-                mutation_type: MutationType::Created,
-            }
-        )
-    }
 }
 
 pub struct Mutation;
@@ -180,7 +165,7 @@ impl Mutation {
     #[graphql(guard(PermissionGuard(permission = "Permission::CreateCoffee")))]
     async fn create_coffee(&self, ctx: &Context<'_>, input: CreateCoffeeInput) -> Result<Coffee> {
         // let redis_pubsub_connection: &PubsubConnection = ctx.data()?;
-        let (redis_connection, _): &(PairedConnection, PubsubConnection) = ctx.data()?;
+        let redis_connection: &PairedConnection = ctx.data()?;
         let db: &Database = ctx.data()?;
 
         create_coffee(db, redis_connection, input).await
@@ -201,6 +186,7 @@ impl Mutation {
     }
 }
 
+/*
 pub struct Subscription;
 
 #[Subscription]
@@ -240,3 +226,4 @@ impl Subscription {
         // })
     }
 }
+*/

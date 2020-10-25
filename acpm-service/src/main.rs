@@ -4,7 +4,7 @@ mod models;
 mod routes;
 
 use crate::config::APP_CONFIG;
-use actix_web::{web::Data, App, HttpServer};
+use actix_web::{App, HttpServer, web::Data, middleware};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use middlewares::basic_auth_validator;
 use paperclip::actix::{
@@ -53,6 +53,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(enforcer.clone())
             .app_data(pool.clone())
+            // enable logger
+            .wrap(middleware::Logger::default())
             // .wrap(auth)
             .wrap_api()
             .service(
