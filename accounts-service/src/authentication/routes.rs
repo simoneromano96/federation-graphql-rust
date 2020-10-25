@@ -65,6 +65,7 @@ pub async fn login(
                 let info = user.to_user_info();
                 // If the user exists there is a user id
                 session.set("user_id", user.id.unwrap()).unwrap();
+                session.set("user_role", user.role).unwrap();
                 Ok(Json(info))
             } else {
                 Err(HttpResponse::BadRequest().body("Wrong password"))
