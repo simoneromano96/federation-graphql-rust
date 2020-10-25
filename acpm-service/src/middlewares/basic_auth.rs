@@ -1,11 +1,40 @@
+use crate::models::AuthClient;
 use actix_web::{dev::ServiceRequest, Error};
-use actix_web_httpauth::extractors::{AuthenticationError, basic::{BasicAuth, Config}};
+use actix_web_httpauth::extractors::{
+    basic::{BasicAuth, Config},
+    AuthenticationError,
+};
+use sqlx::{Pool, Postgres};
 
-async fn validate_credentials(client_id: String, client_password: String) -> Result<bool, bool> {
-    
+const CLIENT_QUERY: &str = r#"
+    SELECT *
+    FROM "clients"
+        WHERE 
+            "client_id" = $1 AND
+            "client_secret" = $2
+    LIMIT 1
+"#;
+
+async fn validate_credentials(pool: &Pool<Postgres>, client_id: &str, client_secret: &str) -> bool {
+    // println!("Authenticating: {:?} - {:?}", client_id, client_secret);
+
+    let client: Option<AuthClient> = sqlx::query_as::<_, AuthClient>(CLIENT_QUERY)
+        .bind(client_id)
+        .bind(client_secret)
+        .fetch_optional(pool)
+        .await
+        .unwrap();
+
+    // println!("{:?}", client);
+
+    if let Some(_) = client {
+        true
+    } else {
+        false
+    }
 }
 
-async fn basic_auth_validator(
+pub async fn basic_auth_validator(
     req: ServiceRequest,
     credentials: BasicAuth,
 ) -> Result<ServiceRequest, Error> {
@@ -14,17 +43,17 @@ async fn basic_auth_validator(
         .map(|data| data.clone())
         .unwrap_or_else(Default::default);
 
-    match validate_credentials(
-        credentials.user_id().to_string(),
-        credentials.password().unwrap().trim().to_string(),
-    ).await {
-        Ok(res) => {
-            if res == true {
-                Ok(req)
-            } else {
-                Err(AuthenticationError::from(config).into())
-            }
-        }
-        Err(_) => Err(AuthenticationError::from(config).into()),
+    let pool = req.app_data::<Pool<Postgres>>().expect("No pool found");
+
+    if validate_credentials(
+        pool,
+        credentials.user_id(),
+        credentials.password().unwrap().trim(),
+    )
+    .await
+    {
+        Ok(req)
+    } else {
+        Err(AuthenticationError::from(config).into())
     }
 }

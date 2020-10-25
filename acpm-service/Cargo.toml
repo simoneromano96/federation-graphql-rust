@@ -15,7 +15,11 @@ actix-web-httpauth = "0.5.0"
 serde = "1.0.117"
 # OpenAPI specification with Actix
 paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features = ["actix3-nightly"] }
-# SQLx
-sqlx = { version = "0.3.5", default-features = false, features = [ "runtime-tokio", "macros", "postgres" ] }
 # Authorization enforcer policies with Adapter for SQLx
-sqlx-adapter = { version = "0.3.0", features = ["postgres"] }
+sqlx-adapter = { version = "0.3.0", default-features = false, features = ["postgres", "runtime-tokio", "offline"] }
+# SQLx
+sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-tokio", "macros", "postgres" ] }
+# Config
+config = { version = "0.10.1", features = ["yaml"] }
+# Lazy evaluation
+lazy_static = "1.4.0"

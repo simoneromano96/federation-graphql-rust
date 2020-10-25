@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS casbin_rules (
+CREATE TABLE IF NOT EXISTS "casbin_rules" (
     id SERIAL PRIMARY KEY,
     ptype VARCHAR NOT NULL,
     v0 VARCHAR NOT NULL,
