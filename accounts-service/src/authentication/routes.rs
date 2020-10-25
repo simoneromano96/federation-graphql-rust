@@ -1,3 +1,5 @@
+use crate::authentication;
+use crate::models::{User, UserInfo, UserInput};
 use actix_session::Session;
 use paperclip::actix::{
     api_v2_operation,
@@ -6,9 +8,6 @@ use paperclip::actix::{
 use wither::bson::{doc, oid::ObjectId};
 use wither::mongodb::Database as MongoDatabase;
 use wither::prelude::*;
-
-use crate::authentication;
-use crate::models::{User, UserInfo, UserInput};
 
 // #[post("/signup")]
 /// User signup

@@ -1,8 +1,6 @@
-use async_graphql::{Context, Object, Result, ID};
-use wither::Model;
-use wither::{bson::doc, bson::oid::ObjectId, mongodb::Database};
-
 use crate::models::{User, UserInfo};
+use async_graphql::{Context, Object, Result, ID};
+use wither::{bson::doc, bson::oid::ObjectId, mongodb::Database};
 
 pub struct Query;
 

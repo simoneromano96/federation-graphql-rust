@@ -1,12 +1,10 @@
-use actix_session::Session;
-use actix_web::{HttpResponse, web::Data};
-// use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
-use async_graphql::http::{GraphQLPlaygroundConfig, playground_source};
-use async_graphql_actix_web::{Request, Response};
-use wither::{bson::oid::ObjectId, mongodb::Database};
-
 use super::IdentityServiceSchema;
 use crate::models::User;
+use actix_session::Session;
+use actix_web::{web::Data, HttpResponse};
+use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
+use async_graphql_actix_web::{Request, Response};
+use wither::{bson::oid::ObjectId, mongodb::Database};
 
 pub async fn index(
     schema: Data<IdentityServiceSchema>,

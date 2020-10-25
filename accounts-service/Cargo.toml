@@ -34,5 +34,3 @@ async-graphql = { version = "^2.0.0-alpha.24", features = ["apollo_tracing", "ap
 async-graphql-actix-web = "^2.0.0-alpha.24"
 # Authorization enforcer policies
 # casbin = { version = "2.0.2", features = ["runtime-tokio"] }
-# Authorization enforcer policies with Adapter for SQLx
-sqlx-adapter = { version = "0.3.0", features = ["postgres"] }
