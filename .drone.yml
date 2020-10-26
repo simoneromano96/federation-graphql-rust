@@ -21,7 +21,7 @@ kind: pipeline
 name: acpm-service
 
 steps:
-  - name: build
+  - name: rust-build
     image: plugins/docker
     settings:
       registry: ghcr.io
@@ -33,3 +33,17 @@ steps:
       dockerfile: ./acpm-service/.docker/acpm-service.dockerfile
       auto_tag: true
       target: production
+
+  - name: postgres-build
+    image: plugins/docker
+    settings:
+      registry: ghcr.io
+      username: simoneromano96
+      password: 
+        from_secret: token
+      repo: ghcr.io/simoneromano96/federation-graphql-rust/acpm-service
+      context: ./acpm-service
+      dockerfile: ./acpm-service/.docker/postgres.dockerfile
+      auto_tag: true
+      target: production
+  
