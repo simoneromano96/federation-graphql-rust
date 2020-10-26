@@ -42,7 +42,7 @@ steps:
       password: 
         from_secret: token
       repo: ghcr.io/simoneromano96/federation-graphql-rust/acpm-postgres
-      context: ./acpm-service
+      context: ./acpm-service/.docker
       dockerfile: ./acpm-service/.docker/postgres.dockerfile
       auto_tag: true
   
