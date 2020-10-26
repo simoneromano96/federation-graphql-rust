@@ -1,6 +1,6 @@
 FROM rustlang/rust:nightly as builder
 
-WORKDIR /usr/src/products-service
+WORKDIR /usr/src/acpm-service
 
 COPY . .
 
@@ -10,10 +10,10 @@ FROM debian:buster-slim as production
 
 # RUN apt-get update && apt-get install -y extra-runtime-dependencies && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /products-service
+WORKDIR /acpm-service
 
-COPY --from=builder /usr/local/cargo/bin/products-service /products-service
+COPY --from=builder /usr/local/cargo/bin/acpm-service /acpm-service
 
-COPY ./environments/* /products-service/environments
+COPY ./environments/* /acpm-service/environments
 
-CMD ["/products-service/products-service"]
+CMD ["/acpm-service/acpm-service"]
