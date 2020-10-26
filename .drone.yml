@@ -45,5 +45,4 @@ steps:
       context: ./acpm-service
       dockerfile: ./acpm-service/.docker/postgres.dockerfile
       auto_tag: true
-      target: production
   
