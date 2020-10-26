@@ -41,7 +41,7 @@ steps:
       username: simoneromano96
       password: 
         from_secret: token
-      repo: ghcr.io/simoneromano96/federation-graphql-rust/acpm-service
+      repo: ghcr.io/simoneromano96/federation-graphql-rust/acpm-postgres
       context: ./acpm-service
       dockerfile: ./acpm-service/.docker/postgres.dockerfile
       auto_tag: true
