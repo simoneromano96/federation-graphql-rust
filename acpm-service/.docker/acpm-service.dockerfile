@@ -1,4 +1,4 @@
-FROM rustlang/rust as builder
+FROM rustlang/rust:nightly as builder
 
 WORKDIR /usr/src/products-service
 
