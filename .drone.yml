@@ -1,8 +1,9 @@
+---
 kind: pipeline
-name: default
+name: products-service
 
 steps:
-  - name: products-service
+  - name: build
     image: plugins/docker
     settings:
       registry: ghcr.io
@@ -12,5 +13,23 @@ steps:
       repo: ghcr.io/simoneromano96/federation-graphql-rust/products-service
       context: ./products-service
       dockerfile: ./products-service/.docker/products-service.dockerfile
+      auto_tag: true
+      target: production
+
+---
+kind: pipeline
+name: acpm-service
+
+steps:
+  - name: build
+    image: plugins/docker
+    settings:
+      registry: ghcr.io
+      username: simoneromano96
+      password: 
+        from_secret: token
+      repo: ghcr.io/simoneromano96/federation-graphql-rust/acpm-service
+      context: ./acpm-service
+      dockerfile: ./acpm-service/.docker/acpm-service.dockerfile
       auto_tag: true
       target: production
