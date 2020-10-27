@@ -1,3 +1,5 @@
+[![Build Status](https://cloud.drone.io/api/badges/simoneromano96/federation-graphql-rust/status.svg)](https://cloud.drone.io/simoneromano96/federation-graphql-rust)
+
 # Complete GraphQL with Apollo Federation services in Rust
 
 ## Services

@@ -1,5 +1,5 @@
 [package]
-name = "accounts-service"
+name = "identity-service"
 version = "0.1.0"
 authors = ["Simone Romano <simoneromano@tutanota.de>"]
 edition = "2018"
