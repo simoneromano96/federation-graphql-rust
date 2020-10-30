@@ -45,4 +45,21 @@ steps:
       context: ./acpm-service/.docker
       dockerfile: ./acpm-service/.docker/postgres.dockerfile
       auto_tag: true
-  
+
+---
+kind: pipeline
+name: identity-service
+
+steps:
+  - name: build
+    image: plugins/docker
+    settings:
+      registry: ghcr.io
+      username: simoneromano96
+      password: 
+        from_secret: token
+      repo: ghcr.io/simoneromano96/federation-graphql-rust/identity-service
+      context: ./identity-service
+      dockerfile: ./identity-service/.docker/identity-service.dockerfile
+      auto_tag: true
+      target: production
