@@ -22,7 +22,7 @@ use std::sync::{Arc, Mutex};
 async fn init_db() -> sqlx::Result<Pool<Postgres>> {
     // Create a connection pool
     let pool: Pool<Postgres> = PgPoolOptions::new()
-        .max_connections(APP_CONFIG.database.pool_size)
+        .max_connections(APP_CONFIG.database.poolsize)
         .connect(&APP_CONFIG.database.url)
         .await?;
 
@@ -31,7 +31,7 @@ async fn init_db() -> sqlx::Result<Pool<Postgres>> {
 
 async fn init_casbin() -> casbin::Result<Enforcer> {
     let m = DefaultModel::from_file(&APP_CONFIG.access_model_path).await?;
-    let a = SqlxAdapter::new(&APP_CONFIG.database.url, APP_CONFIG.database.pool_size).await?;
+    let a = SqlxAdapter::new(&APP_CONFIG.database.url, APP_CONFIG.database.poolsize).await?;
     let e = Enforcer::new(m, a).await?;
 
     Ok(e)

@@ -20,6 +20,6 @@ sqlx-adapter = { version = "0.3.0", default-features = false, features = ["postg
 # SQLx
 sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-tokio", "macros", "postgres" ] }
 # Config
-config = { version = "0.10.1", features = ["yaml"] }
+config = { version = "0.10.1", features = ["toml", "yaml"] }
 # Lazy evaluation
 lazy_static = "1.4.0"

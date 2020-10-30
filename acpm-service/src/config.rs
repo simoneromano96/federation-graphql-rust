@@ -1,11 +1,7 @@
-use config::{Config, ConfigError, Environment, File};
+use config::{Config, Environment, File};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
-use std::{
-    env,
-    net::IpAddr,
-    path::{Path, PathBuf},
-};
+use std::env;
 
 lazy_static! {
     pub static ref APP_CONFIG: Settings = Settings::init_config();
@@ -13,9 +9,15 @@ lazy_static! {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct PoolConfig {
+    pub size: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PostgresConfig {
     pub url: String,
-    pub pool_size: u32,
+    pub poolsize: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -55,10 +57,13 @@ impl Settings {
 
         // Add in settings from the environment
         // DEBUG=1 sets debug key, DATABASE_URL sets database.url key
-        // s.merge(Environment::new().prefix("APP").separator(".")).expect("Cannot get env");
+        s.merge(Environment::new().prefix("APP").separator("_")).expect("Cannot get env");
+        
+        println!("{:?}", s);
 
         // Deserialize configuration
         let mut r: Settings = s.try_into().expect("Configuration error");
+
 
         // Enable all logging
         if r.debug {
@@ -66,10 +71,12 @@ impl Settings {
             env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
         }
 
+        println!("{:?}", r);
+
         // Should not be necessary
-        if let Ok(database_url) = env::var("DATABASE_URL") {
-            r.database.url = database_url;
-        }
+        // if let Ok(database_url) = env::var("DATABASE_URL") {
+        //     r.database.url = database_url;
+        // }
 
         r
     }
