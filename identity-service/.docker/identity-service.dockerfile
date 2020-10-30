@@ -1,4 +1,4 @@
-FROM rust as builder
+FROM rustlang/rust:nightly as builder
 
 WORKDIR /usr/src/identity-service
 
