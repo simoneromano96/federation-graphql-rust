@@ -1,8 +1,12 @@
 use config::{Config, ConfigError, Environment, File};
 use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
+use std::{
+    env,
+    net::IpAddr,
+    path::{Path, PathBuf},
+};
 use url::Url;
-use std::{env, net::IpAddr, path::{Path, PathBuf}};
-use serde::{Serialize, Deserialize};
 
 lazy_static! {
     pub static ref APP_CONFIG: Settings = Settings::init_config();
@@ -20,7 +24,6 @@ pub struct RedisConfig {
 pub struct SessionConfig {
     pub secret: String,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -45,7 +48,7 @@ pub struct BasicAuthConfig {
 #[serde(rename_all = "camelCase")]
 pub struct AuthorizationServerConfig {
     pub basic_auth: BasicAuthConfig,
-    pub url: String
+    pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -76,15 +79,23 @@ impl Settings {
 
         // Add in the current environment file
         // Default to 'development' env
-        s.merge(File::from(config_file_path).required(true)).expect("Could not read file");
+        s.merge(File::from(config_file_path).required(true))
+            .expect("Could not read file");
+
+        s.merge(Environment::new().prefix("APP").separator("_"));
 
         // Deserialize configuration
-        let r: Settings = s.try_into().expect("Configuration error");
-        
+        let mut r: Settings = s.try_into().expect("Configuration error");
+
         // Enable all logging
         if r.debug {
             env::set_var("RUST_BACKTRACE", "1");
             env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
+        }
+
+        // Should not be necessary
+        if let Ok(connection_string) = env::var("MONGO_CONNECTION_STRING") {
+            r.mongo.connection_string = connection_string;
         }
 
         r

@@ -22,55 +22,56 @@ pub struct PermissionGuard {
 impl Guard for PermissionGuard {
     async fn check(&self, ctx: &Context<'_>) -> Result<()> {
         let client: &reqwest::Client = ctx.data().unwrap();
+        let mut user_role = "guest";
 
-        if let Some(user_role) = ctx.data_opt::<String>() {
-            let subject = user_role;
-            let action;
-            let object;
+        if let Some(logged_user_role) = ctx.data_opt::<String>() {
+            user_role = logged_user_role;
+        }
 
-            // TODO: I don't really like this
-            match self.permission {
-                Permission::CreateCoffee => {
-                    object = "coffee";
-                    action = "create";
-                }
-                Permission::ReadCoffee => {
-                    object = "coffee";
-                    action = "read";
-                }
-                Permission::UpdateCoffee => {
-                    object = "coffee";
-                    action = "update";
-                }
-                Permission::DeleteCoffee => {
-                    object = "coffee";
-                    action = "delete";
-                }
+        let subject = user_role;
+        let action;
+        let object;
+
+        // TODO: I don't really like this
+        match self.permission {
+            Permission::CreateCoffee => {
+                object = "coffee";
+                action = "create";
             }
-
-            // println!("Requesting access to resource");
-            // println!("{:?}::{:?}::{:?}", subject, action, object);
-
-            let request = client
-                .get(&APP_CONFIG.authorization_server.url)
-                .query(&[
-                    ("subject", String::from(subject)),
-                    ("action", String::from(action)),
-                    ("object", String::from(object)),
-                ])
-                .build()?;
-
-            let res = client.execute(request).await?;
-
-            // println!("Authorized response: {:?}", res);
-
-            let status = res.status();
-            match status {
-                StatusCode::OK => Ok(()),
-                _ => Err("Cannot access resource".into()),
+            Permission::ReadCoffee => {
+                object = "coffee";
+                action = "read";
             }
-        } else {
-            Err("Must be authenticated".into())
+            Permission::UpdateCoffee => {
+                object = "coffee";
+                action = "update";
+            }
+            Permission::DeleteCoffee => {
+                object = "coffee";
+                action = "delete";
+            }
+        }
+
+        // println!("Requesting access to resource");
+        // println!("{:?}::{:?}::{:?}", subject, action, object);
+
+        let request = client
+            .get(&APP_CONFIG.authorization_server.url)
+            .query(&[
+                ("subject", String::from(subject)),
+                ("action", String::from(action)),
+                ("object", String::from(object)),
+            ])
+            .build()?;
+
+        let res = client.execute(request).await?;
+
+        // println!("Authorized response: {:?}", res);
+
+        let status = res.status();
+        match status {
+            StatusCode::OK => Ok(()),
+            _ => Err("Cannot access resource".into()),
         }
     }
 }
