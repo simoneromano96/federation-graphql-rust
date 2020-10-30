@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 # HTTP Server
-actix-web = "3.1.0"
+actix-web = { version = "3.2.0", default-features = false }
 # Basic auth
 actix-web-httpauth = "0.5.0"
 # Serialization/Deserialization
