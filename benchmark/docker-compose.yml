@@ -1,0 +1,9 @@
+version: "3.6"
+
+services: 
+  benchmark:
+    build: 
+      context: .
+      dockerfile: hasura-graphql-bench.dockerfile
+    ports: 
+      - 8050:8050

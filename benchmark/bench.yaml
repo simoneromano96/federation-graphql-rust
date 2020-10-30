@@ -1,0 +1,15 @@
+- name: coffees
+  warmup_duration: 60
+  duration: 300
+  candidates:
+  - name: federation-mercurius-rust
+    url: http://127.0.0.1:4000
+    query: Coffees
+    queries_file: queries.graphql
+  rps:
+  - 200
+  - 400
+  - 600
+  - 800
+  - 1000
+

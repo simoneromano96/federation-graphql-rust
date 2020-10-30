@@ -16,17 +16,17 @@ const main = async () => {
     jit: 1,
     gateway: {
       services: [
-        // {
-        //   name: 'accounts',
-        //   url: 'http://127.0.0.1:4001/graphql',
-        //   // mandatory: true,
-        //   // Forward all headers
-        //   rewriteHeaders: (headers) => headers,
-        // },
+        {
+          name: 'accounts',
+          url: 'http://127.0.0.1:4001/graphql',
+          // mandatory: true,
+          // Forward all headers
+          rewriteHeaders: (headers) => headers,
+        },
         {
           name: 'products',
           url: 'http://127.0.0.1:4002/graphql',
-          wsUrl: 'ws://127.0.0.1:4002/graphql',
+          // wsUrl: 'ws://127.0.0.1:4002/graphql',
           // Forward all headers
           rewriteHeaders: (headers) => headers,
         }

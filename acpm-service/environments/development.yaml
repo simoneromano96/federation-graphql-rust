@@ -5,7 +5,7 @@ database:
   url: postgres://casbin:casbin@127.0.0.1:5432/casbin
   poolsize: 8
 # Casbin access model
-accessModelPath: C:\\Users\\Sippo\\Desktop\\git\\github\\federation-graphql-rust\\acpm-service\\src\\access_model\\rbac_model.conf
+accessModelPath: ./environments/access_model/rbac_model.conf
 # HTTP Server
 server:
   port: 3999
