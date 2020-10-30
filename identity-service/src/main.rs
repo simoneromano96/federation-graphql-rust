@@ -1,7 +1,9 @@
 mod authentication;
+mod config;
 mod graphql;
 mod models;
 
+use crate::config::APP_CONFIG;
 use actix_redis::RedisSession;
 use actix_web::{cookie, middleware, App, HttpServer};
 use async_graphql::{
@@ -20,7 +22,7 @@ use wither::mongodb::{Client, Database};
 use wither::Model;
 
 async fn init_db() -> Database {
-    Client::with_uri_str("mongodb://root:example@127.0.0.1:27017/")
+    Client::with_uri_str(&APP_CONFIG.database.url)
         .await
         .expect("Cannot connect to the db")
         .database("identity-service")
@@ -56,11 +58,14 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             // cookie session middleware
             .wrap(
-                RedisSession::new("127.0.0.1:6379", b"N7WoK3mG7lSb0CpK8UhAabUZNi27n5ub")
-                    // Don't allow the cookie to be accessed from javascript
-                    .cookie_http_only(true)
-                    // allow the cookie only from the current domain
-                    .cookie_same_site(cookie::SameSite::Lax),
+                RedisSession::new(
+                    format!("{:?}:{:?}", APP_CONFIG.redis.host, APP_CONFIG.redis.port),
+                    APP_CONFIG.session.secret.as_bytes(),
+                )
+                // Don't allow the cookie to be accessed from javascript
+                .cookie_http_only(true)
+                // allow the cookie only from the current domain
+                .cookie_same_site(cookie::SameSite::Lax),
             )
             .data(identity_database.clone())
             .data(graphql_schema.clone())
@@ -88,7 +93,7 @@ async fn main() -> std::io::Result<()> {
             // Build the app
             .build()
     })
-    .bind("0.0.0.0:4001")?
+    .bind(format!("0.0.0.0:{:?}", APP_CONFIG.server.port))?
     .run()
     .await
 }

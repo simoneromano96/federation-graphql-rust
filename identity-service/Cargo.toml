@@ -32,5 +32,7 @@ paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features =
 async-graphql = { version = "^2.0.0-alpha.24", features = ["apollo_tracing", "apollo_persisted_queries"] }
 # GraphQL Actix Adapter
 async-graphql-actix-web = "^2.0.0-alpha.24"
+config = "0.10.1"
+lazy_static = "1.4.0"
 # Authorization enforcer policies
 # casbin = { version = "2.0.2", features = ["runtime-tokio"] }
