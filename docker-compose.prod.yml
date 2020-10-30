@@ -1,0 +1,55 @@
+version: "3.6"
+
+services:
+  redis:
+    image: redis:alpine
+    # ports:
+    #   - 6379:6379
+
+  mongo:
+    image: mongo
+    restart: always
+    # ports:
+    #   - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+
+  postgres:
+    image: ghcr.io/simoneromano96/federation-graphql-rust/acpm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: casbin
+      POSTGRES_PASSWORD: casbin
+      POSTGRES_DB: casbin
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: ["postgres", "-c", "log_statement=all"]
+    
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+
+  acpm-service:
+    image: ghcr.io/simoneromano96/federation-graphql-rust/acpm-service
+    restart: unless-stopped
+    environment: 
+      DATABASE_URL: postgres://casbin:casbin@postgres:5432/casbin
+      DATABASE_POOLSIZE: 16
+      SERVER_PORT: 80
+    ports: 
+      - 3999:80
+
+volumes:
+  postgres_data:
