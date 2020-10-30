@@ -63,3 +63,20 @@ steps:
       dockerfile: ./identity-service/.docker/identity-service.dockerfile
       auto_tag: true
       target: production
+
+---
+kind: pipeline
+name: graphql-gateway
+
+steps:
+  - name: build
+    image: plugins/docker
+    settings:
+      registry: ghcr.io
+      username: simoneromano96
+      password: 
+        from_secret: token
+      repo: ghcr.io/simoneromano96/federation-graphql-rust/graphql-gateway
+      context: ./gateway
+      dockerfile: ./gateway/.docker/gateway.dockerfile
+      auto_tag: true
