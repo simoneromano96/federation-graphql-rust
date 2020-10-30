@@ -5,6 +5,14 @@ const {config} = require("./config")
 
 const gateway = Fastify()
 
+const createService = ({name, url}) => ({
+  name,
+  url,
+  rewriteHeaders: (headers) => headers,
+})
+
+const services = config.services.map((service) => createService(service))
+
 const main = async () => {
   gateway.register(mercurius, {
     graphiql: "playground",
@@ -15,22 +23,7 @@ const main = async () => {
     subscription: true,
     jit: 1,
     gateway: {
-      services: [
-        {
-          name: 'accounts',
-          url: 'http://127.0.0.1:4001/graphql',
-          // mandatory: true,
-          // Forward all headers
-          rewriteHeaders: (headers) => headers,
-        },
-        {
-          name: 'products',
-          url: 'http://127.0.0.1:4002/graphql',
-          // wsUrl: 'ws://127.0.0.1:4002/graphql',
-          // Forward all headers
-          rewriteHeaders: (headers) => headers,
-        }
-      ]
+      services
     },
     // errorHandler: (error, service) => {
     //   console.error("Service: ", service);
