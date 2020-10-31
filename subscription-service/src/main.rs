@@ -1,26 +1,19 @@
-#![feature(associated_type_bounds)]
-#![feature(async_closure)]
-
+mod config;
 mod graphql;
 mod models;
 
-// use crate::graphql::coffee::{CoffeeSchema, MutationRoot, QueryRoot, SubscriptionRoot};
+use crate::config::APP_CONFIG;
 use actix_web::{
     guard, middleware,
     web::{self, post},
     App, HttpServer,
 };
-// use actix_cors::Cors;
-// use actix_web_actors::ws;
 use async_graphql::{extensions::ApolloTracing, EmptyMutation, Schema};
-// use async_graphql_actix_web::WSSubscription;
-// use std::sync::Arc;
 use graphql::{index, index_ws, Query, Subscription, SubscriptionServiceSchema};
-// use redis_async::client::pubsub_connect;
 use redis_async::{client, client::PubsubConnection};
 
 async fn init_redis() -> PubsubConnection {
-    let addr = "127.0.0.1:6379"
+    let addr = format!("{}:{}", APP_CONFIG.redis.host, APP_CONFIG.redis.port)
         .parse()
         .expect("Cannot parse Redis connection string");
 
@@ -57,7 +50,7 @@ async fn main() -> std::io::Result<()> {
             )
         // .service(web::resource("/playground").guard(guard::Get()).to(gql_playgound))
     })
-    .bind("0.0.0.0:4003")?
+    .bind(format!("0.0.0.0:{:?}", APP_CONFIG.server.port))?
     .run()
     .await
 }

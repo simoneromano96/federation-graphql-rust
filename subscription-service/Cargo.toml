@@ -23,3 +23,6 @@ async-graphql = { version = "2.0.9", features = ["apollo_tracing"] }
 async-graphql-actix-web = "2.0.9"
 # Futures traits and methods
 futures = "0.3.7"
+# Config 
+config = "0.10.1"
+lazy_static = "1.4.0"
