@@ -28,7 +28,7 @@ pub struct SessionConfig {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MongoConfig {
-    pub connection_string: String,
+    pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -47,7 +47,7 @@ pub struct BasicAuthConfig {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthorizationServerConfig {
-    pub basic_auth: BasicAuthConfig,
+    pub auth: BasicAuthConfig,
     pub url: String,
 }
 
@@ -57,9 +57,9 @@ pub struct Settings {
     pub debug: bool,
     pub redis: RedisConfig,
     pub session: SessionConfig,
-    pub mongo: MongoConfig,
+    pub database: MongoConfig,
     pub server: ServerConfig,
-    pub authorization_server: AuthorizationServerConfig,
+    pub authorization: AuthorizationServerConfig,
 }
 
 impl Settings {
@@ -82,7 +82,7 @@ impl Settings {
         s.merge(File::from(config_file_path).required(true))
             .expect("Could not read file");
 
-        s.merge(Environment::new().prefix("APP").separator("_"));
+        s.merge(Environment::new().prefix("APP").separator("_")).expect("Cannot merge env");
 
         // Deserialize configuration
         let mut r: Settings = s.try_into().expect("Configuration error");
@@ -94,9 +94,9 @@ impl Settings {
         }
 
         // Should not be necessary
-        if let Ok(connection_string) = env::var("MONGO_CONNECTION_STRING") {
-            r.mongo.connection_string = connection_string;
-        }
+        // if let Ok(connection_string) = env::var("MONGO_CONNECTION_STRING") {
+        //     r.mongo.connection_string = connection_string;
+        // }
 
         r
     }
