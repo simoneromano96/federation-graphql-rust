@@ -1,5 +1,5 @@
-FROM rust as builder
-# FROM rustlang/rust:nightly as builder
+# FROM rust as builder
+FROM rustlang/rust:nightly as builder
 
 WORKDIR /usr/src/acpm-service
 
