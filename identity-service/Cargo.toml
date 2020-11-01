@@ -29,9 +29,9 @@ wither = { git = "https://github.com/simoneromano96/wither.git", branch = "maste
 # OpenAPI specification with Actix
 paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features = ["actix3-nightly", "actix-session"] }
 # GraphQL implementation
-async-graphql = { version = "2.0.9", features = ["apollo_tracing", "apollo_persisted_queries"] }
+async-graphql = { version = "2.0.10", features = ["apollo_tracing", "apollo_persisted_queries"] }
 # GraphQL Actix Adapter
-async-graphql-actix-web = "2.0.9"
+async-graphql-actix-web = "2.0.10"
 config = "0.10.1"
 lazy_static = "1.4.0"
 # Authorization enforcer policies

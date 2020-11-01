@@ -4,7 +4,7 @@ use wither::{bson::doc, bson::oid::ObjectId, mongodb::Database};
 
 pub struct Query;
 
-#[Object(extends)]
+#[Object(extends, cache_control(max_age = 60))]
 impl Query {
     /// Get current user info
     async fn me(&self, ctx: &Context<'_>) -> Result<UserInfo> {
