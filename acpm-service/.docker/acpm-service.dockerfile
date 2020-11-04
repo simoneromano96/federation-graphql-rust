@@ -7,7 +7,7 @@ COPY . .
 
 RUN cargo install --path .
 
-FROM debian:slim as production
+FROM debian:stable-slim as production
 
 RUN apt-get update && apt-get install -y libssl-dev && rm -rf /var/lib/apt/lists/*
 
