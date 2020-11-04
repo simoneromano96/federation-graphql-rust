@@ -31,7 +31,7 @@ async fn init_mongo() -> wither::mongodb::Database {
     use wither::mongodb::Client;
 
     // Connect to the database.
-    let products_database = Client::with_uri_str(&APP_CONFIG.mongo.connection_string)
+    let products_database = Client::with_uri_str(&APP_CONFIG.database.url)
         .await
         .expect("Cannot connect to the db")
         .database("products-service");
@@ -59,8 +59,8 @@ fn init_http_client() -> reqwest::Client {
     let mut headers = header::HeaderMap::new();
     let basic_credentials = format!(
         "{}:{}",
-        APP_CONFIG.authorization_server.basic_auth.username,
-        APP_CONFIG.authorization_server.basic_auth.password
+        APP_CONFIG.authorization.auth.username,
+        APP_CONFIG.authorization.auth.password
     );
     let basic_auth_header_value = format!("Basic {}", base64::encode(basic_credentials));
 

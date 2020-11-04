@@ -56,7 +56,7 @@ impl Guard for PermissionGuard {
         // println!("{:?}::{:?}::{:?}", subject, action, object);
 
         let request = client
-            .get(&APP_CONFIG.authorization_server.url)
+            .get(&APP_CONFIG.authorization.url)
             .query(&[
                 ("subject", String::from(subject)),
                 ("action", String::from(action)),
