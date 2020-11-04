@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use async_graphql::{self, Enum, InputObject, Object, ID};
+use async_graphql::{self, Enum, Object, ID};
 
 #[derive(Debug, Enum, Eq, PartialEq, Copy, Clone, Deserialize, Serialize)]
 pub enum MutationType {

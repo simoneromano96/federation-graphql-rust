@@ -28,7 +28,7 @@ async fn main() -> std::io::Result<()> {
 
     let schema: SubscriptionServiceSchema = Schema::build(Query, EmptyMutation, Subscription)
         .data(redis_connection)
-        // .extension(ApolloTracing)
+        .extension(ApolloTracing)
         .finish();
 
     HttpServer::new(move || {

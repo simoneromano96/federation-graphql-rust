@@ -1,12 +1,10 @@
-use config::{Config, ConfigError, Environment, File};
+use config::{Config, Environment, File};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::{
     env,
     net::IpAddr,
-    path::{Path, PathBuf},
 };
-use url::Url;
 
 lazy_static! {
     pub static ref APP_CONFIG: Settings = Settings::init_config();
