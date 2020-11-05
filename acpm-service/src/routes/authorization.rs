@@ -16,8 +16,6 @@ pub async fn is_authorized(
     enforcer: Data<Mutex<Enforcer>>,
     permission_query: Query<PermissionQuery>,
 ) -> std::result::Result<HttpResponse, HttpResponse> {
-    Ok(HttpResponse::Ok().body("Is authorized"))
-    /*
     let sub = &permission_query.subject;
     let obj = &permission_query.object;
     let act = &permission_query.action;
@@ -33,7 +31,6 @@ pub async fn is_authorized(
     } else {
         Err(HttpResponse::InternalServerError().body("Oopsie woopsie!"))
     }
-    */
 }
 
 // #[post("/add-policy")]
