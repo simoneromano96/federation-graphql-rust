@@ -52,7 +52,7 @@ impl Settings {
 
         // Add in the current environment file
         // Default to 'development' env
-        s.merge(File::from(config_file_path).required(true))
+        s.merge(File::from(config_file_path).required(false))
             .expect("Could not read file");
 
         // Add in settings from the environment
@@ -62,7 +62,7 @@ impl Settings {
         println!("{:?}", s);
 
         // Deserialize configuration
-        let mut r: Settings = s.try_into().expect("Configuration error");
+        let r: Settings = s.try_into().expect("Configuration error");
 
 
         // Enable all logging
