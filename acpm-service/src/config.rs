@@ -30,7 +30,7 @@ pub struct ServerConfig {
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub debug: bool,
-    pub access_model_path: String,
+    pub accessmodelpath: String,
     pub database: PostgresConfig,
     pub server: ServerConfig,
 }
@@ -40,7 +40,7 @@ impl Settings {
         let mut s = Config::default();
         let mut config_file_path = env::current_dir().expect("Cannot get current path");
 
-        // println!("{:?}", config_file_path);
+        println!("{:?}", config_file_path);
 
         // Get current RUN_MODE, should be: development/production
         let current_env = env::var("RUN_MODE").unwrap_or(String::from("development"));
@@ -48,7 +48,7 @@ impl Settings {
         config_file_path.push("environments");
         config_file_path.push(format!("{}.yaml", current_env));
 
-        // println!("{:?}", config_file_path);
+        println!("{:?}", config_file_path);
 
         // Add in the current environment file
         // Default to 'development' env

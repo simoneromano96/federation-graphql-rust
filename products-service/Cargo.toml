@@ -24,9 +24,9 @@ serde_json = "1.0.59"
 # Mongo DB ODM (Should be merged soon)
 wither = { git = "https://github.com/simoneromano96/wither.git" }
 # GraphQL implementation
-async-graphql = { version = "2.0.9", features = ["apollo_tracing"] }
+async-graphql = { version = "2.0.10", features = ["apollo_tracing", "apollo_persisted_queries"] }
 # GraphQL Actix Adapter
-async-graphql-actix-web = "2.0.9"
+async-graphql-actix-web = "2.0.10"
 # Type-safe URLs
 url = { version = "2.1.1", features = ["serde"] }
 # Futures traits and methods

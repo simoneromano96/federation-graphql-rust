@@ -10,7 +10,11 @@ use actix_web::{
     web::{self, post},
     App, HttpServer,
 };
-use async_graphql::{EmptySubscription, Schema};
+use async_graphql::{
+    extensions::apollo_persisted_queries::{ApolloPersistedQueries, LruCacheStorage},
+    extensions::ApolloTracing,
+    EmptySubscription, Schema,
+};
 use base64;
 use graphql::{index, index_ws, Mutation, ProductsServiceSchema, Query};
 use models::Coffee;
@@ -77,6 +81,20 @@ fn init_http_client() -> reqwest::Client {
         .expect("Could not create http client")
 }
 
+fn init_graphql(
+    db: wither::mongodb::Database,
+    redis_connection: PairedConnection,
+    http_client: reqwest::Client,
+) -> ProductsServiceSchema {
+    Schema::build(Query, Mutation, EmptySubscription)
+        .data(db)
+        .data(redis_connection)
+        .data(http_client)
+        .extension(ApolloTracing)
+        .extension(ApolloPersistedQueries::new(LruCacheStorage::new(256)))
+        .finish()
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
@@ -84,13 +102,7 @@ async fn main() -> std::io::Result<()> {
     let db = init_mongo().await;
     let redis_connection = init_redis().await;
     let http_client = init_http_client();
-
-    let schema: ProductsServiceSchema = Schema::build(Query, Mutation, EmptySubscription)
-        .data(db)
-        .data(redis_connection)
-        .data(http_client)
-        // .extension(ApolloTracing)
-        .finish();
+    let schema = init_graphql(db, redis_connection, http_client);
 
     HttpServer::new(move || {
         App::new()
@@ -107,19 +119,19 @@ async fn main() -> std::io::Result<()> {
                 // Don't allow the cookie to be accessed from javascript
                 .cookie_http_only(true)
                 // allow the cookie only from the current domain
-                .cookie_same_site(cookie::SameSite::Lax),
+                .cookie_same_site(cookie::SameSite::Strict),
             )
             // CORS
             // .wrap(Cors::default())
             // GraphQL
             .route("/graphql", post().to(index))
             // GraphQL Subscriptions
-            .service(
-                web::resource("/graphql")
-                    .guard(guard::Get())
-                    .guard(guard::Header("upgrade", "websocket"))
-                    .to(index_ws),
-            )
+            // .service(
+            //     web::resource("/graphql")
+            //         .guard(guard::Get())
+            //         .guard(guard::Header("upgrade", "websocket"))
+            //         .to(index_ws),
+            // )
         // .service(web::resource("/playground").guard(guard::Get()).to(gql_playgound))
     })
     .bind(format!("0.0.0.0:{:?}", APP_CONFIG.server.port))?
