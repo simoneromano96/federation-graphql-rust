@@ -30,7 +30,7 @@ async fn init_db() -> sqlx::Result<Pool<Postgres>> {
 }
 
 async fn init_casbin() -> casbin::Result<Enforcer> {
-    let m = DefaultModel::from_file(&APP_CONFIG.access_model_path).await?;
+    let m = DefaultModel::from_file(&APP_CONFIG.accessmodelpath).await?;
     let a = SqlxAdapter::new(&APP_CONFIG.database.url, APP_CONFIG.database.poolsize).await?;
     let e = Enforcer::new(m, a).await?;
 
