@@ -11,23 +11,24 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@graphql-tools/load": "^6.2.5",
-    "@graphql-tools/mock": "^7.0.0",
-    "@graphql-tools/schema": "^7.0.0",
-    "@graphql-tools/stitch": "^7.0.3",
-    "@graphql-tools/url-loader": "^6.4.0",
-    "fastify": "^3.7.0",
-    "graphql": "^15.4.0",
+    "@graphql-tools/load": "~6.2.5",
+    "@graphql-tools/mock": "~7.0.0",
+    "@graphql-tools/schema": "~7.0.0",
+    "@graphql-tools/stitch": "~7.0.3",
+    "@graphql-tools/url-loader": "~6.4.0",
+    "fastify": "~3.7.0",
     "mercurius": "~6.4.0",
-    "ts-node": "^9.0.0"
+    "ts-node": "~9.0.0",
+    "ws": "~7.3.1"
   },
   "devDependencies": {
-    "@types/node": "^14.14.6",
-    "@typescript-eslint/eslint-plugin": "^4.6.1",
-    "eslint": "^7.13.0",
-    "eslint-config-prettier": "^6.15.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "prettier": "^2.1.2",
-    "ts-node-dev": "^1.0.0"
+    "@types/node": "~14.14.6",
+    "@types/ws": "~7.2.9",
+    "@typescript-eslint/eslint-plugin": "~4.6.1",
+    "eslint": "~7.13.0",
+    "eslint-config-prettier": "~6.15.0",
+    "eslint-plugin-prettier": "~3.1.4",
+    "prettier": "~2.1.2",
+    "ts-node-dev": "~1.0.0"
   }
 }
