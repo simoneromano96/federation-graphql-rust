@@ -5,13 +5,11 @@ use crate::{
     models::coffee::MutationType,
 };
 use async_graphql::guard::Guard;
-use async_graphql::{Context, Object, Result, ID};
-use futures::{stream::StreamExt};
+use async_graphql::{Context, Object, Result, ID, Subscription};
+use futures::{Stream, stream::StreamExt};
 use log::info;
-use redis_async::{
-    client::{PairedConnection},
-    resp_array,
-};
+// use redis_async::{resp::FromResp, client::{PairedConnection, PubsubConnection}, resp_array};
+use redis::AsyncCommands;
 use serde_json;
 use wither::prelude::*;
 use wither::{
@@ -48,7 +46,7 @@ async fn fetch_coffee_by_id(db: &Database, id: String) -> Result<Coffee> {
 
 async fn create_coffee(
     db: &Database,
-    redis_connection: &PairedConnection,
+    redis_client: &redis::Client,
     input: CreateCoffeeInput,
 ) -> Result<Coffee> {
     let mut coffee = Coffee {
@@ -68,9 +66,9 @@ async fn create_coffee(
 
     let json = serde_json::to_string(&message)?;
 
-    redis_connection.send_and_forget(resp_array!["PUBLISH", "coffees", &json]);
-
-    // redis_connection.publish("wavephone", "banana").await?;
+    let mut publish_conn = redis_client.get_async_connection().await?;
+    publish_conn.publish("coffees", &json).await?;
+    // redis_connection.send_and_forget(resp_array!["PUBLISH", "coffees", &json]);
 
     // SimpleBroker::publish(CoffeeChanged {
     //     mutation_type: MutationType::Created,
@@ -165,10 +163,12 @@ impl Mutation {
     #[graphql(guard(PermissionGuard(permission = "Permission::CreateCoffee")))]
     async fn create_coffee(&self, ctx: &Context<'_>, input: CreateCoffeeInput) -> Result<Coffee> {
         // let redis_pubsub_connection: &PubsubConnection = ctx.data()?;
-        let redis_connection: &PairedConnection = ctx.data()?;
+        // let (redis_connection, _): &(PairedConnection, PubsubConnection) = ctx.data()?;
+        let redis_client: &redis::Client = ctx.data()?;
+
         let db: &Database = ctx.data()?;
 
-        create_coffee(db, redis_connection, input).await
+        create_coffee(db, redis_client, input).await
     }
 
     /// Updates a coffee
@@ -186,7 +186,6 @@ impl Mutation {
     }
 }
 
-/*
 pub struct Subscription;
 
 #[Subscription]
@@ -196,8 +195,28 @@ impl Subscription {
         ctx: &Context<'_>,
         mutation_type: Option<MutationType>,
     ) -> impl Stream<Item = CoffeeChanged> {
-        let (_, pubsub_connection): &(PairedConnection, PubsubConnection) = ctx.data().unwrap();
+        // let (_, pubsub_connection): &(PairedConnection, PubsubConnection) = ctx.data().unwrap();
+        let redis_client: &redis::Client = ctx.data().unwrap();
 
+        let mut pubsub_conn = redis_client.get_async_connection().await.unwrap().into_pubsub();
+
+        pubsub_conn.subscribe("coffees").await.expect("Cannot subscribe to topic");
+        let mut pubsub_stream = pubsub_conn.into_on_message();
+
+        pubsub_stream.filter_map(move |msg| {
+            let mut res = None;
+            if let Some(mutation_type) = mutation_type {
+                if let Ok(payload) = msg.get_payload::<String>() {
+                    let coffee_changed: CoffeeChanged = serde_json::from_str(&payload).unwrap();
+                    if coffee_changed.mutation_type == mutation_type {
+                        res = Some(coffee_changed)
+                    }
+                }
+            }
+            async { res }
+        })
+
+        /*
         let msgs = pubsub_connection
             .subscribe("coffees")
             .await
@@ -216,6 +235,7 @@ impl Subscription {
             }
             async move { res }
         })
+        */
         // SimpleBroker::<CoffeeChanged>::subscribe().filter(move |event| {
         //     let res = if let Some(mutation_type) = mutation_type {
         //         event.mutation_type == mutation_type
@@ -226,4 +246,3 @@ impl Subscription {
         // })
     }
 }
-*/

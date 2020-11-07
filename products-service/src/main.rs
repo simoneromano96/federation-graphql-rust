@@ -16,10 +16,10 @@ use async_graphql::{
     EmptySubscription, Schema,
 };
 use base64;
-use graphql::{index, index_ws, Mutation, ProductsServiceSchema, Query};
+use graphql::{index, index_ws, Mutation, ProductsServiceSchema, Query, Subscription};
 use models::Coffee;
 use pretty_env_logger;
-use redis_async::client::paired::PairedConnection;
+// use redis_async::client::{paired::PairedConnection, PubsubConnection};
 use reqwest::{header, ClientBuilder};
 use wither::prelude::*;
 
@@ -47,16 +47,29 @@ async fn init_mongo() -> wither::mongodb::Database {
     products_database
 }
 
-async fn init_redis() -> PairedConnection {
-    use redis_async::client;
+async fn init_redis() -> redis::Client {
+    // use redis_async::client;
 
+    /*
     let addr = format!("{}:{}", APP_CONFIG.redis.host, APP_CONFIG.redis.port)
         .parse()
         .expect("Cannot parse Redis connection string");
+    */
+    let addr = format!("redis://{}:{}", APP_CONFIG.redis.host, APP_CONFIG.redis.port);
 
-    client::paired_connect(&addr)
-        .await
-        .expect("Cannot open connection")
+    let client: redis::Client = redis::Client::open(addr).unwrap();
+
+    client
+    /*
+    (
+        client::paired_connect(&addr)
+            .await
+            .expect("Cannot open connection"),
+        client::pubsub_connect(&addr)
+            .await
+            .expect("Cannot connect to Redis"),
+    )
+    */
 }
 
 fn init_http_client() -> reqwest::Client {
@@ -83,15 +96,15 @@ fn init_http_client() -> reqwest::Client {
 
 fn init_graphql(
     db: wither::mongodb::Database,
-    redis_connection: PairedConnection,
+    redis_client: redis::Client,
     http_client: reqwest::Client,
 ) -> ProductsServiceSchema {
-    Schema::build(Query, Mutation, EmptySubscription)
+    Schema::build(Query, Mutation, Subscription)
         .data(db)
-        .data(redis_connection)
+        .data(redis_client)
         .data(http_client)
-        .extension(ApolloTracing)
-        .extension(ApolloPersistedQueries::new(LruCacheStorage::new(256)))
+        // .extension(ApolloTracing)
+        // .extension(ApolloPersistedQueries::new(LruCacheStorage::new(256)))
         .finish()
 }
 
@@ -100,9 +113,10 @@ async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
 
     let db = init_mongo().await;
-    let redis_connection = init_redis().await;
+    // let redis_connections = init_redis().await;
+    let redis_client = init_redis().await;
     let http_client = init_http_client();
-    let schema = init_graphql(db, redis_connection, http_client);
+    let schema = init_graphql(db, redis_client, http_client);
 
     HttpServer::new(move || {
         App::new()
@@ -126,12 +140,12 @@ async fn main() -> std::io::Result<()> {
             // GraphQL
             .route("/graphql", post().to(index))
             // GraphQL Subscriptions
-            // .service(
-            //     web::resource("/graphql")
-            //         .guard(guard::Get())
-            //         .guard(guard::Header("upgrade", "websocket"))
-            //         .to(index_ws),
-            // )
+            .service(
+                web::resource("/graphql")
+                    .guard(guard::Get())
+                    .guard(guard::Header("upgrade", "websocket"))
+                    .to(index_ws),
+            )
         // .service(web::resource("/playground").guard(guard::Get()).to(gql_playgound))
     })
     .bind(format!("0.0.0.0:{:?}", APP_CONFIG.server.port))?

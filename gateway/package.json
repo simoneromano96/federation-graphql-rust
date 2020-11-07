@@ -5,13 +5,32 @@
   "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./src/index.js"
+    "lint": "eslint './src/**/*.ts' --fix",
+    "dev": "tsnd --inspect=0.0.0.0:7001 --exit-child --respawn src/index.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@graphql-tools/load": "^6.2.5",
+    "@graphql-tools/mock": "^7.0.0",
+    "@graphql-tools/schema": "^7.0.0",
+    "@graphql-tools/stitch": "^7.0.3",
+    "@graphql-tools/url-loader": "^6.4.0",
     "fastify": "^3.7.0",
+    "fastify-websocket": "^2.0.10",
     "graphql": "^15.4.0",
-    "mercurius": "~6.4.0"
+    "graphql-helix": "^0.2.0",
+    "mercurius": "~6.4.0",
+    "ts-node": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.6",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
+    "eslint": "^7.12.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "prettier": "^2.1.2",
+    "ts-node-dev": "^1.0.0"
   }
 }
