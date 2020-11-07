@@ -5,16 +5,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch via nodemon",
       "type": "node",
-      "request": "attach",
-      "name": "Attach to Node",
-      "port": 7001,
-      "address": "localhost",
-      "localRoot": "${workspaceFolder}",
-      "sourceMapPathOverrides": {
-        "/app/*": "${workspaceRoot}/*"
-      },
-      "remoteRoot": "/app/"
+      "request": "launch",
+      "protocol": "inspector",
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/ts-node-dev",
+      "args": ["${workspaceRoot}/src/index.ts"],
+      "restart": true
     }
   ]
 }
