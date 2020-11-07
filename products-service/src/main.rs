@@ -10,13 +10,10 @@ use actix_web::{
     web::{self, post},
     App, HttpServer,
 };
-use async_graphql::{
-    extensions::apollo_persisted_queries::{ApolloPersistedQueries, LruCacheStorage},
-    extensions::ApolloTracing,
-    EmptySubscription, Schema,
-};
+use async_graphql::{Schema, extensions::ApolloTracing, extensions::{Logger, apollo_persisted_queries::{ApolloPersistedQueries, LruCacheStorage}}};
 use base64;
 use graphql::{index, index_ws, Mutation, ProductsServiceSchema, Query, Subscription};
+use log::info;
 use models::Coffee;
 use pretty_env_logger;
 // use redis_async::client::{paired::PairedConnection, PubsubConnection};
@@ -40,9 +37,13 @@ async fn init_mongo() -> wither::mongodb::Database {
         .expect("Cannot connect to the db")
         .database("products-service");
 
+    info!("Mongo database initialised");
+
     Coffee::sync(&products_database)
         .await
         .expect("Failed syncing indexes");
+
+    info!("Models synced");
 
     products_database
 }
@@ -58,6 +59,8 @@ async fn init_redis() -> redis::Client {
     let addr = format!("redis://{}:{}", APP_CONFIG.redis.host, APP_CONFIG.redis.port);
 
     let client: redis::Client = redis::Client::open(addr).unwrap();
+
+    info!("Redis client initialised");
 
     client
     /*
@@ -88,6 +91,8 @@ fn init_http_client() -> reqwest::Client {
 
     // println!("{:?}", headers);
 
+    info!("HTTP Client initialised");
+
     ClientBuilder::new()
         .default_headers(headers)
         .build()
@@ -99,24 +104,35 @@ fn init_graphql(
     redis_client: redis::Client,
     http_client: reqwest::Client,
 ) -> ProductsServiceSchema {
-    Schema::build(Query, Mutation, Subscription)
+    let schema = Schema::build(Query, Mutation, Subscription)
         .data(db)
         .data(redis_client)
         .data(http_client)
         // .extension(ApolloTracing)
         // .extension(ApolloPersistedQueries::new(LruCacheStorage::new(256)))
-        .finish()
+        .extension(Logger)
+        .finish();
+    
+    info!("Initialised graphql");
+    
+    schema
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("called main()");
+    if APP_CONFIG.debug {
+        std::env::set_var("RUST_BACKTRACE", "1");
+        std::env::set_var("RUST_LOG", "info,actix_web=info,actix_redis=info");
+    }
+
     pretty_env_logger::init();
 
     let db = init_mongo().await;
-    // let redis_connections = init_redis().await;
     let redis_client = init_redis().await;
     let http_client = init_http_client();
     let schema = init_graphql(db, redis_client, http_client);
+    info!("Initialisation finished, server will listen at port: {:?}", APP_CONFIG.server.port);
 
     HttpServer::new(move || {
         App::new()

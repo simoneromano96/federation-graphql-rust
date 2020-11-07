@@ -201,7 +201,7 @@ impl Subscription {
         let mut pubsub_conn = redis_client.get_async_connection().await.unwrap().into_pubsub();
 
         pubsub_conn.subscribe("coffees").await.expect("Cannot subscribe to topic");
-        let mut pubsub_stream = pubsub_conn.into_on_message();
+        let pubsub_stream = pubsub_conn.into_on_message();
 
         pubsub_stream.filter_map(move |msg| {
             let mut res = None;

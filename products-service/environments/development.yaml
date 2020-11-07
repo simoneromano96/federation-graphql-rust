@@ -16,6 +16,7 @@ server:
 # Authorization server
 authorization:
   url: http://127.0.0.1:3999/api/v1/authorization/is-authorized
+  skip: false
   auth:
     username: "products-service"
     password: "password"
