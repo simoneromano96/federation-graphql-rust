@@ -1,5 +1,6 @@
 use config::{Config, Environment, File};
 use lazy_static::lazy_static;
+use log::info;
 use serde::{Deserialize, Serialize};
 use std::{
     env,
@@ -47,6 +48,7 @@ pub struct BasicAuthConfig {
 pub struct AuthorizationServerConfig {
     pub auth: BasicAuthConfig,
     pub url: String,
+    pub skip: bool
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -62,6 +64,7 @@ pub struct Settings {
 
 impl Settings {
     fn init_config() -> Self {
+        println!("CONFIG INIT");
         let mut s = Config::default();
         let mut config_file_path = env::current_dir().expect("Cannot get current path");
 
@@ -86,10 +89,12 @@ impl Settings {
         let r: Settings = s.try_into().expect("Configuration error");
 
         // Enable all logging
-        if r.debug {
-            env::set_var("RUST_BACKTRACE", "1");
-            env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
-        }
+        // if r.debug {
+        //     info!("Adding debugging logging");
+        //     env::set_var("RUST_BACKTRACE", "1");
+        //     env::set_var("RUST_LOG", "info,actix_web=info,actix_redis=info");
+        //     info!("Adding debugging logging 2");
+        // }
 
         // Should not be necessary
         // if let Ok(connection_string) = env::var("MONGO_CONNECTION_STRING") {

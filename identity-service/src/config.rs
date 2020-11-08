@@ -36,7 +36,6 @@ pub struct SessionConfig {
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub debug: bool,
-    pub access_model_path: String,
     pub database: MongoConfig,
     pub server: ServerConfig,
     pub redis: RedisConfig,
@@ -45,6 +44,7 @@ pub struct Settings {
 
 impl Settings {
     fn init_config() -> Self {
+        println!("CONFIG INIT");
         let mut s = Config::default();
         let mut config_file_path = env::current_dir().expect("Cannot get current path");
 
@@ -72,10 +72,10 @@ impl Settings {
         let mut r: Settings = s.try_into().expect("Configuration error");
 
         // Enable all logging
-        if r.debug {
-            env::set_var("RUST_BACKTRACE", "1");
-            env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
-        }
+        // if r.debug {
+        //     env::set_var("RUST_BACKTRACE", "1");
+        //     env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
+        // }
 
         // Should not be necessary
         // if let Ok(database_url) = env::var("DATABASE_URL") {

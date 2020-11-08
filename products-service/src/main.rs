@@ -10,16 +10,13 @@ use actix_web::{
     web::{self, post},
     App, HttpServer,
 };
-use async_graphql::{
-    extensions::apollo_persisted_queries::{ApolloPersistedQueries, LruCacheStorage},
-    extensions::ApolloTracing,
-    EmptySubscription, Schema,
-};
+use async_graphql::{Schema, extensions::ApolloTracing, extensions::{Logger, apollo_persisted_queries::{ApolloPersistedQueries, LruCacheStorage}}};
 use base64;
-use graphql::{index, index_ws, Mutation, ProductsServiceSchema, Query};
+use graphql::{index, index_ws, Mutation, ProductsServiceSchema, Query, Subscription};
+use log::info;
 use models::Coffee;
 use pretty_env_logger;
-use redis_async::client::paired::PairedConnection;
+// use redis_async::client::{paired::PairedConnection, PubsubConnection};
 use reqwest::{header, ClientBuilder};
 use wither::prelude::*;
 
@@ -40,23 +37,42 @@ async fn init_mongo() -> wither::mongodb::Database {
         .expect("Cannot connect to the db")
         .database("products-service");
 
+    info!("Mongo database initialised");
+
     Coffee::sync(&products_database)
         .await
         .expect("Failed syncing indexes");
 
+    info!("Models synced");
+
     products_database
 }
 
-async fn init_redis() -> PairedConnection {
-    use redis_async::client;
+async fn init_redis() -> redis::Client {
+    // use redis_async::client;
 
+    /*
     let addr = format!("{}:{}", APP_CONFIG.redis.host, APP_CONFIG.redis.port)
         .parse()
         .expect("Cannot parse Redis connection string");
+    */
+    let addr = format!("redis://{}:{}", APP_CONFIG.redis.host, APP_CONFIG.redis.port);
 
-    client::paired_connect(&addr)
-        .await
-        .expect("Cannot open connection")
+    let client: redis::Client = redis::Client::open(addr).unwrap();
+
+    info!("Redis client initialised");
+
+    client
+    /*
+    (
+        client::paired_connect(&addr)
+            .await
+            .expect("Cannot open connection"),
+        client::pubsub_connect(&addr)
+            .await
+            .expect("Cannot connect to Redis"),
+    )
+    */
 }
 
 fn init_http_client() -> reqwest::Client {
@@ -75,6 +91,8 @@ fn init_http_client() -> reqwest::Client {
 
     // println!("{:?}", headers);
 
+    info!("HTTP Client initialised");
+
     ClientBuilder::new()
         .default_headers(headers)
         .build()
@@ -83,26 +101,43 @@ fn init_http_client() -> reqwest::Client {
 
 fn init_graphql(
     db: wither::mongodb::Database,
-    redis_connection: PairedConnection,
+    redis_client: redis::Client,
     http_client: reqwest::Client,
 ) -> ProductsServiceSchema {
-    Schema::build(Query, Mutation, EmptySubscription)
+    let schema = Schema::build(Query, Mutation, Subscription)
         .data(db)
-        .data(redis_connection)
+        .data(redis_client)
         .data(http_client)
-        .extension(ApolloTracing)
-        .extension(ApolloPersistedQueries::new(LruCacheStorage::new(256)))
-        .finish()
+        // .extension(ApolloTracing)
+        // .extension(ApolloPersistedQueries::new(LruCacheStorage::new(256)))
+        .extension(Logger)
+        .finish();
+    
+    info!("Initialised graphql");
+    
+    schema
+}
+
+fn init_logger() {
+    if APP_CONFIG.debug {
+        std::env::set_var("RUST_BACKTRACE", "1");
+        std::env::set_var("RUST_LOG", "info,actix_web=info,actix_redis=info");
+    }
+
+    pretty_env_logger::init();
+    info!("Logger initialised");
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    pretty_env_logger::init();
-
+    println!("called main()");
+    
+    init_logger();
     let db = init_mongo().await;
-    let redis_connection = init_redis().await;
+    let redis_client = init_redis().await;
     let http_client = init_http_client();
-    let schema = init_graphql(db, redis_connection, http_client);
+    let schema = init_graphql(db, redis_client, http_client);
+    info!("Initialisation finished, server will listen at port: {:?}", APP_CONFIG.server.port);
 
     HttpServer::new(move || {
         App::new()
@@ -126,12 +161,12 @@ async fn main() -> std::io::Result<()> {
             // GraphQL
             .route("/graphql", post().to(index))
             // GraphQL Subscriptions
-            // .service(
-            //     web::resource("/graphql")
-            //         .guard(guard::Get())
-            //         .guard(guard::Header("upgrade", "websocket"))
-            //         .to(index_ws),
-            // )
+            .service(
+                web::resource("/graphql")
+                    .guard(guard::Get())
+                    .guard(guard::Header("upgrade", "websocket"))
+                    .to(index_ws),
+            )
         // .service(web::resource("/playground").guard(guard::Get()).to(gql_playgound))
     })
     .bind(format!("0.0.0.0:{:?}", APP_CONFIG.server.port))?
