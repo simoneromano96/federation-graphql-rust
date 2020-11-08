@@ -40,7 +40,7 @@ impl Settings {
         let mut s = Config::default();
         let mut config_file_path = env::current_dir().expect("Cannot get current path");
 
-        println!("{:?}", config_file_path);
+        // println!("{:?}", config_file_path);
 
         // Get current RUN_MODE, should be: development/production
         let current_env = env::var("RUN_MODE").unwrap_or(String::from("development"));
@@ -48,7 +48,7 @@ impl Settings {
         config_file_path.push("environments");
         config_file_path.push(format!("{}.yaml", current_env));
 
-        println!("{:?}", config_file_path);
+        // println!("{:?}", config_file_path);
 
         // Add in the current environment file
         // Default to 'development' env
@@ -59,19 +59,19 @@ impl Settings {
         // DEBUG=1 sets debug key, DATABASE_URL sets database.url key
         s.merge(Environment::new().prefix("APP").separator("_")).expect("Cannot get env");
         
-        println!("{:?}", s);
+        // println!("{:?}", s);
 
         // Deserialize configuration
         let r: Settings = s.try_into().expect("Configuration error");
 
 
         // Enable all logging
-        if r.debug {
-            env::set_var("RUST_BACKTRACE", "1");
-            env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
-        }
+        // if r.debug {
+        //     env::set_var("RUST_BACKTRACE", "1");
+        //     env::set_var("RUST_LOG", "actix_web=info,actix_redis=info");
+        // }
 
-        println!("{:?}", r);
+        // println!("{:?}", r);
 
         // Should not be necessary
         // if let Ok(database_url) = env::var("DATABASE_URL") {

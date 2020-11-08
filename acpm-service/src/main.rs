@@ -6,6 +6,7 @@ mod routes;
 use crate::config::APP_CONFIG;
 use actix_web::{App, HttpServer, web::Data, middleware};
 use actix_web_httpauth::middleware::HttpAuthentication;
+use log::info;
 use middlewares::basic_auth_validator;
 use paperclip::actix::{
     web::{get, post, scope},
@@ -26,6 +27,8 @@ async fn init_db() -> sqlx::Result<Pool<Postgres>> {
         .connect(&APP_CONFIG.database.url)
         .await?;
 
+    info!("DB client initialised");
+
     Ok(pool)
 }
 
@@ -34,11 +37,25 @@ async fn init_casbin() -> casbin::Result<Enforcer> {
     let a = SqlxAdapter::new(&APP_CONFIG.database.url, APP_CONFIG.database.poolsize).await?;
     let e = Enforcer::new(m, a).await?;
 
+    info!("Casbin initialised");
     Ok(e)
+}
+
+fn init_logger() {
+    if APP_CONFIG.debug {
+        std::env::set_var("RUST_BACKTRACE", "1");
+        std::env::set_var("RUST_LOG", "info,actix_web=info,actix_redis=info");
+    }
+
+    pretty_env_logger::init();
+    info!("Logger initialised");
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("called main()");
+    init_logger();
+
     let enforcer = Data::new(Mutex::new(
         init_casbin()
             .await
@@ -46,6 +63,7 @@ async fn main() -> std::io::Result<()> {
     ));
 
     let pool = init_db().await.expect("Could not init db");
+    info!("Initialisation finished, server will listen at port: {:?}", APP_CONFIG.server.port);
 
     HttpServer::new(move || {
         let auth = HttpAuthentication::basic(basic_auth_validator);
