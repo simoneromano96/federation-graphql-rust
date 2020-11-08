@@ -14,6 +14,6 @@ WORKDIR /identity-service
 
 COPY --from=builder /usr/local/cargo/bin/identity-service /identity-service
 
-COPY ./environments/* /identity-service/environments/
+COPY ./environments/ /identity-service/environments/
 
 CMD ["/identity-service/identity-service"]

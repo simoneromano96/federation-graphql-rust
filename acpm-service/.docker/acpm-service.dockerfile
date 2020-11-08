@@ -15,6 +15,6 @@ WORKDIR /acpm-service
 
 COPY --from=builder /usr/local/cargo/bin/acpm-service /acpm-service
 
-COPY ./environments/* /acpm-service/environments/
+COPY ./environments/ /acpm-service/environments/
 
 CMD ["/acpm-service/acpm-service"]

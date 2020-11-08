@@ -52,6 +52,8 @@ services:
       APP_ACCESSMODELPATH: /acpm-service/environments/rbac_model.conf
     ports: 
       - 3999:80
+    depends_on: 
+      - postgres
 
   graphql-gateway:
     image: ghcr.io/simoneromano96/federation-graphql-rust/graphql-gateway
@@ -62,6 +64,9 @@ services:
       PRODUCTS_SERVICE_URL: http://products-service/graphql
     ports: 
       - 4000:80
+    depends_on: 
+      - identity-service
+      - products-service
 
   identity-service:
     image: ghcr.io/simoneromano96/federation-graphql-rust/identity-service
@@ -83,6 +88,8 @@ services:
       APP_AUTH_PASSWORD: password
     ports: 
       - 4002:80
+    depends_on: 
+      - acpm-service
 
   #subscription-service:
   #  image: ghcr.io/simoneromano96/federation-graphql-rust/subscription-service
