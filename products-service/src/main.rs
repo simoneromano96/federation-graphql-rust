@@ -56,9 +56,9 @@ async fn init_redis() -> redis::Client {
         .parse()
         .expect("Cannot parse Redis connection string");
     */
-    // let addr = format!("redis://{}:{}", APP_CONFIG.redis.host, APP_CONFIG.redis.port);
+    let addr = format!("redis://{}", APP_CONFIG.redis.url);
 
-    let client: redis::Client = redis::Client::open(APP_CONFIG.redis.url.clone()).unwrap();
+    let client: redis::Client = redis::Client::open(addr).unwrap();
 
     info!("Redis client initialised");
 

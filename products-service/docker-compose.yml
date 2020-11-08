@@ -1,9 +1,46 @@
 version: "3.6"
 
 services:
+  redis:
+    image: redis:alpine
+    # ports:
+    #   - 6379:6379
+
+  mongo:
+    image: mongo
+    restart: always
+    # ports:
+    #   - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+    depends_on: 
+      - mongo
+
   products:
     build:
       context: .
       dockerfile: ./.docker/products-service.dockerfile
-    ports:
-      - "4003:4003"
+    restart: unless-stopped
+    environment: 
+      APP_DEBUG: "true"
+      APP_REDIS_URL: redis:6379
+      APP_DATABASE_URL: mongodb://root:example@mongo:27017/admin
+      APP_SERVER_PORT: 80
+      APP_AUTHORIZATION_URL: http://acpm-service/api/v1/authorization/is-authorized
+      APP_AUTH_USERNAME: products-service
+      APP_AUTH_PASSWORD: password
+    ports: 
+      - 4002:80
+    depends_on: 
+      - redis
+      - mongo
