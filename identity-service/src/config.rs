@@ -22,8 +22,7 @@ pub struct ServerConfig {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RedisConfig {
-    pub host: IpAddr,
-    pub port: u16,
+    pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

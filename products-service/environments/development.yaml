@@ -2,8 +2,7 @@
 debug: true
 # Redis
 redis:
-  host: 127.0.0.1
-  port: 6379
+  url: redis://127.0.0.1:6379
 # Session
 session:
   secret: N7WoK3mG7lSb0CpK8UhAabUZNi27n5ub

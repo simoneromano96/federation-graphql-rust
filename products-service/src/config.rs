@@ -4,7 +4,7 @@ use log::info;
 use serde::{Deserialize, Serialize};
 use std::{
     env,
-    net::IpAddr,
+    net::SocketAddr,
 };
 
 lazy_static! {
@@ -14,8 +14,7 @@ lazy_static! {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RedisConfig {
-    pub host: IpAddr,
-    pub port: u16,
+    pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

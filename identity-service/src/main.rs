@@ -81,7 +81,7 @@ async fn main() -> std::io::Result<()> {
             // cookie session middleware
             .wrap(
                 RedisSession::new(
-                    format!("{:?}:{:?}", APP_CONFIG.redis.host, APP_CONFIG.redis.port),
+                    &APP_CONFIG.redis.url,
                     APP_CONFIG.session.secret.as_bytes(),
                 )
                 // Don't allow the cookie to be accessed from javascript
