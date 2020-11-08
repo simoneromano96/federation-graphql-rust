@@ -64,23 +64,23 @@ steps:
       auto_tag: true
       target: production
 
----
-kind: pipeline
-name: subscription-service
-
-steps:
-  - name: build
-    image: plugins/docker
-    settings:
-      registry: ghcr.io
-      username: simoneromano96
-      password: 
-        from_secret: token
-      repo: ghcr.io/simoneromano96/federation-graphql-rust/subscription-service
-      context: ./subscription-service
-      dockerfile: ./subscription-service/.docker/subscription-service.dockerfile
-      auto_tag: true
-      target: production
+# ---
+# kind: pipeline
+# name: subscription-service
+# 
+# steps:
+#   - name: build
+#     image: plugins/docker
+#     settings:
+#       registry: ghcr.io
+#       username: simoneromano96
+#       password: 
+#         from_secret: token
+#       repo: ghcr.io/simoneromano96/federation-graphql-rust/subscription-service
+#       context: ./subscription-service
+#       dockerfile: ./subscription-service/.docker/subscription-service.dockerfile
+#       auto_tag: true
+#       target: production
 
 ---
 kind: pipeline
