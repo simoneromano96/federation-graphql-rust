@@ -65,7 +65,6 @@ pub struct Settings {
 impl Settings {
     fn init_config() -> Self {
         println!("CONFIG INIT");
-        info!("Creating configuration");
         let mut s = Config::default();
         let mut config_file_path = env::current_dir().expect("Cannot get current path");
 

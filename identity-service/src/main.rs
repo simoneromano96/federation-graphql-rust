@@ -7,8 +7,7 @@ use crate::config::APP_CONFIG;
 use actix_redis::RedisSession;
 use actix_web::{cookie, middleware, App, HttpServer};
 use async_graphql::{
-    extensions::apollo_persisted_queries::ApolloPersistedQueries,
-    extensions::apollo_persisted_queries::LruCacheStorage, extensions::ApolloTracing,
+    extensions::{apollo_persisted_queries::ApolloPersistedQueries, ApolloTracing, Logger, apollo_persisted_queries::LruCacheStorage},
     EmptyMutation, EmptySubscription, Schema,
 };
 use authentication::routes::*;
@@ -18,33 +17,56 @@ use paperclip::actix::{
     web::{get, post, scope},
     OpenApiExt,
 };
+use log::info;
 use wither::mongodb::{Client, Database};
 use wither::Model;
 
 async fn init_db() -> Database {
-    Client::with_uri_str(&APP_CONFIG.database.url)
+    let db = Client::with_uri_str(&APP_CONFIG.database.url)
         .await
         .expect("Cannot connect to the db")
-        .database("identity-service")
+        .database("identity-service");
+    
+    info!("Mongo database initialised");
+
+    User::sync(&db)
+        .await
+        .expect("Failed syncing indexes");
+
+    db
 }
 
 fn init_graphql(db: &Database) -> IdentityServiceSchema {
-    Schema::build(Query, EmptyMutation, EmptySubscription)
+    let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(db.clone())
-        .extension(ApolloTracing)
-        .extension(ApolloPersistedQueries::new(LruCacheStorage::new(256)))
-        .finish()
+        // .extension(ApolloTracing)
+        // .extension(ApolloPersistedQueries::new(LruCacheStorage::new(256)))
+        .extension(Logger)
+        .finish();
+    
+    info!("Initialised graphql");
+
+    schema
+}
+
+fn init_logger() {
+    if APP_CONFIG.debug {
+        std::env::set_var("RUST_BACKTRACE", "1");
+        std::env::set_var("RUST_LOG", "info,actix_web=info,actix_redis=info");
+    }
+
+    pretty_env_logger::init();
+    info!("Logger initialised");
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("called main()");
+    
+    init_logger();
+
     // Connect & sync indexes.
     let identity_database = init_db().await;
-
-    User::sync(&identity_database)
-        .await
-        .expect("Failed syncing indexes");
-
     let graphql_schema = init_graphql(&identity_database);
 
     // let db = std::sync::Arc::new(identity_database);
