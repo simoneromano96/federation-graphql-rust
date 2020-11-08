@@ -118,16 +118,21 @@ fn init_graphql(
     schema
 }
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    println!("called main()");
+fn init_logger() {
     if APP_CONFIG.debug {
         std::env::set_var("RUST_BACKTRACE", "1");
         std::env::set_var("RUST_LOG", "info,actix_web=info,actix_redis=info");
     }
 
     pretty_env_logger::init();
+    info!("Logger initialised");
+}
 
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    println!("called main()");
+    
+    init_logger();
     let db = init_mongo().await;
     let redis_client = init_redis().await;
     let http_client = init_http_client();
