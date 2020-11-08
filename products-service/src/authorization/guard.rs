@@ -62,6 +62,10 @@ impl Guard for PermissionGuard {
             info!("Requesting access to resource");
             info!("{:?}::{:?}::{:?}", subject, action, object);
     
+            // The permission query is formed as: 
+            // subject (user role, default to guest) 
+            // action (create, read, update, delete) 
+            // object (coffee)
             let request = client
                 .get(&APP_CONFIG.authorization.url)
                 .query(&[
