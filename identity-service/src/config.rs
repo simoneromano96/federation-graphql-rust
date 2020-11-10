@@ -64,7 +64,7 @@ impl Settings {
 
         // Add in settings from the environment
         // DEBUG=1 sets debug key, DATABASE_URL sets database.url key
-        s.merge(Environment::new().prefix("APP").separator("."))
+        s.merge(Environment::new().prefix("APP").separator("_"))
             .expect("Cannot get env");
 
         // Deserialize configuration
