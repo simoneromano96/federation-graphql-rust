@@ -53,9 +53,9 @@ const main = async () => {
       subscription: true,
     })
 
-    await app.listen(config.gateway.port)
+    await app.listen(config.gateway.port, "0.0.0.0")
 
-    app.log.info(`server listening on ?`, app.server.address())
+    // app.log.info(`server listening on ?`, app.server.address())
   } catch (err) {
     // app.log.error(err)
     process.exit(1)
