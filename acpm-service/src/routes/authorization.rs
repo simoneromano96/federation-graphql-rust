@@ -1,4 +1,4 @@
-use crate::models::PermissionQuery;
+use crate::models::{AddUserToRole, PermissionQuery};
 use paperclip::actix::{
     api_v2_operation,
     web::{Data, HttpResponse, Json, Query},
@@ -77,4 +77,25 @@ pub async fn remove_policy(
         .expect("Cannot remove policy");
 
     Ok(HttpResponse::Ok().body(format!("Removed: {:?}", removed)))
+}
+
+// #[post("/add-user-to-role")]
+/// Add user to role policy
+///
+/// Basic Auth protected route
+/// Adds an access policy
+#[api_v2_operation]
+pub async fn add_user_to_role(
+    enforcer: Data<Mutex<Enforcer>>,
+    add_user: Json<AddUserToRole>,
+) -> std::result::Result<HttpResponse, HttpResponse> {
+    let mut e = enforcer.lock().unwrap();
+
+    // TODO: add domain support
+    let added = e
+        .add_role_for_user(&add_user.user_id, &add_user.role, None)
+        .await
+        .expect("Cannot add policy");
+
+    Ok(HttpResponse::Ok().body(format!("Added: {:?}", added)))
 }

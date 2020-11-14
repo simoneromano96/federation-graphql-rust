@@ -12,7 +12,7 @@ use paperclip::actix::{
     web::{get, post, scope},
     OpenApiExt,
 };
-use routes::{add_policy, is_authorized, remove_policy};
+use routes::{add_policy, add_user_to_role, is_authorized, remove_policy};
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use sqlx_adapter::{
     casbin::{self, prelude::*},
@@ -84,7 +84,8 @@ async fn main() -> std::io::Result<()> {
                             scope("/authorization")
                                 .route("/is-authorized", get().to(is_authorized))
                                 .route("/add-policy", post().to(add_policy))
-                                .route("/remove-policy", post().to(remove_policy)),
+                                .route("/remove-policy", post().to(remove_policy))
+                                .route("/add-user-to-role", post().to(add_user_to_role)),
                         ),
                     ),
             )
