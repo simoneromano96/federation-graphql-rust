@@ -1,4 +1,4 @@
-use crate::models::{AddUserToRole, PermissionQuery};
+use crate::models::{AddRolesForUser, AddPermissionToRole, PermissionQuery};
 use paperclip::actix::{
     api_v2_operation,
     web::{Data, HttpResponse, Json, Query},
@@ -79,21 +79,48 @@ pub async fn remove_policy(
     Ok(HttpResponse::Ok().body(format!("Removed: {:?}", removed)))
 }
 
-// #[post("/add-user-to-role")]
-/// Add user to role policy
+// #[post("/add-roles-for-user")]
+/// Add user to roles
 ///
 /// Basic Auth protected route
-/// Adds an access policy
+/// Adds a user (user id) to the given roles array
 #[api_v2_operation]
-pub async fn add_user_to_role(
+pub async fn add_roles_for_user(
     enforcer: Data<Mutex<Enforcer>>,
-    add_user: Json<AddUserToRole>,
+    add_user: Json<AddRolesForUser>,
 ) -> std::result::Result<HttpResponse, HttpResponse> {
     let mut e = enforcer.lock().unwrap();
 
     // TODO: add domain support
     let added = e
-        .add_role_for_user(&add_user.user_id, &add_user.role, None)
+        .add_roles_for_user(&add_user.user_id, add_user.roles.clone(), None)
+        .await
+        .expect("Cannot add policy");
+
+    Ok(HttpResponse::Ok().body(format!("Added: {:?}", added)))
+}
+
+// #[post("/add-permissions-for-role")]
+/// Add permissions to role
+///
+/// Basic Auth protected route
+/// Adds all the permissions in the array to a role
+#[api_v2_operation]
+pub async fn add_permissions_for_role(
+    enforcer: Data<Mutex<Enforcer>>,
+    add_permission: Json<AddPermissionToRole>,
+) -> std::result::Result<HttpResponse, HttpResponse> {
+    let mut e = enforcer.lock().unwrap();
+
+    let permissions: Vec<Vec<String>> = 
+        add_permission
+        .permissions
+        .iter()
+        .map(|permission| vec![permission.action.clone(), permission.object.clone()])
+        .collect();
+
+    let added = e
+        .add_permissions_for_user(&add_permission.role, permissions)
         .await
         .expect("Cannot add policy");
 
