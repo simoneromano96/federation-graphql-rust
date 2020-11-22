@@ -1,6 +1,5 @@
 use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
-
 #[derive(Debug, Serialize, Deserialize, Apiv2Schema)]
 #[serde(rename_all = "camelCase")]
 pub struct AddRolesForUser {
@@ -8,8 +7,8 @@ pub struct AddRolesForUser {
     pub user_id: String,
     /// Roles
     pub roles: Vec<String>,
-    /// Optionally give a domain to the role, ex. app-1, app-2
-    pub domain: Option<String>,
+    /// Domain of the role, ex. app-1, app-2
+    pub domain: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Apiv2Schema)]

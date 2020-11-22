@@ -21,15 +21,12 @@ pub async fn is_authorized(
     let act = &permission_query.action;
     let e = enforcer.lock().unwrap();
 
-    let r = e.enforce((&sub, obj, act));
-    if let Ok(authorized) = r {
-        if authorized {
-            Ok(HttpResponse::Ok().body("Is authorized"))
-        } else {
-            Ok(HttpResponse::Unauthorized().body("Not authorized"))
-        }
+    let authorized = e.has_permission_for_user(sub, vec![obj.to_owned(), act.to_owned()]);
+
+    if authorized {
+        Ok(HttpResponse::Ok().body("Is authorized"))
     } else {
-        Err(HttpResponse::InternalServerError().body("Oopsie woopsie!"))
+        Ok(HttpResponse::Unauthorized().body("Not authorized"))
     }
 }
 
@@ -91,9 +88,8 @@ pub async fn add_roles_for_user(
 ) -> std::result::Result<HttpResponse, HttpResponse> {
     let mut e = enforcer.lock().unwrap();
 
-    // TODO: add domain support
     let added = e
-        .add_roles_for_user(&add_user.user_id, add_user.roles.clone(), None)
+        .add_roles_for_user(&add_user.user_id, add_user.roles.clone(), Some(add_user.domain.as_str()))
         .await
         .expect("Cannot add policy");
 
