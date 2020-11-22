@@ -27,13 +27,13 @@ impl Guard for PermissionGuard {
             Ok(())
         } else {
             let client: &reqwest::Client = ctx.data().unwrap();
-            let mut user_role = "guest";
+            let mut user = "guest";
     
-            if let Some(logged_user_role) = ctx.data_opt::<String>() {
-                user_role = logged_user_role;
+            if let Some(logged_user) = ctx.data_opt::<String>() {
+                user = logged_user;
             }
     
-            let subject = user_role;
+            let subject = user;
             let action;
             let object;
 

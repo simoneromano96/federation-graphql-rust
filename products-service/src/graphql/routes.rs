@@ -7,7 +7,7 @@ use actix_web::{
 use actix_web_actors::ws;
 use async_graphql::Schema;
 use async_graphql_actix_web::{Request, Response, WSSubscription};
-use wither::bson::oid::ObjectId;
+// use wither::bson::oid::ObjectId;
 
 pub async fn index(
     schema: Data<ProductsServiceSchema>,
@@ -16,8 +16,8 @@ pub async fn index(
     session: Session,
     // http_client: Data<Client>,
 ) -> Response {
-    let maybe_user: Option<ObjectId> = session.get("user_id").unwrap_or(None);
-    let maybe_user_role: Option<String> = session.get("user_role").unwrap_or(None);
+    let maybe_user: Option<String> = session.get("user_id").unwrap_or(None);
+    // let maybe_user_role: Option<String> = session.get("user_role").unwrap_or(None);
 
     // println!("{:?}", maybe_user);
 
@@ -26,10 +26,10 @@ pub async fn index(
         // println!("Add User Info: id: {:?}", &user_id);
         request = request.data(user_id);
     }
-    if let Some(user_role) = maybe_user_role {
-        // println!("Add User Info: role: {:?}", &user_role);
-        request = request.data(user_role);
-    }
+    // if let Some(user_role) = maybe_user_role {
+    //     // println!("Add User Info: role: {:?}", &user_role);
+    //     request = request.data(user_role);
+    // }
 
     schema.execute(request).await.into()
 }
