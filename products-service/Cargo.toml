@@ -34,7 +34,7 @@ url = { version = "2.2.0", features = ["serde"] }
 # Futures traits and methods
 futures = "0.3.12"
 # HTTP Client
-reqwest = { version = "0.11.0", default-features = false, features = ["rustls-tls"] }
+reqwest = { version = "0.10.0", default-features = false, features = ["rustls-tls"] }
 # Config
 config = { version = "0.10.1", features = ["yaml"] }
 # Evaluate config only once
