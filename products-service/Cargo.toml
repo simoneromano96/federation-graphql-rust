@@ -10,7 +10,7 @@ edition = "2018"
 # HTTP Server
 actix-web = "3.3.2"
 # WebSocket extensions
-actix-web-actors = "3.0.0"
+# actix-web-actors = "3.0.0"
 # Session adapter
 actix-session = "0.4.0"
 # Redis Session

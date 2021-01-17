@@ -4,7 +4,6 @@ use actix_web::{
     web::{Data, Payload},
     HttpRequest, HttpResponse, Result,
 };
-use actix_web_actors::ws;
 use async_graphql::Schema;
 use async_graphql_actix_web::{Request, Response, WSSubscription};
 // use wither::bson::oid::ObjectId;
@@ -39,12 +38,7 @@ pub async fn index_ws(
     req: HttpRequest,
     payload: Payload,
 ) -> Result<HttpResponse> {
-    ws::start_with_protocols(
-        WSSubscription::new(Schema::clone(&*schema)),
-        &["graphql-ws"],
-        &req,
-        payload,
-    )
+    WSSubscription::start(Schema::clone(&*schema), &req, payload)
 }
 
 /*
