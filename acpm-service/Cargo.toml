@@ -18,7 +18,7 @@ paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features =
 # Authorization enforcer policies with Adapter for SQLx
 sqlx-adapter = { git = "https://github.com/simoneromano96/sqlx-adapter", branch = "upgrade-sqlx", default-features = false, features = ["postgres", "runtime-actix-native-tls", "offline"] }
 # SQLx
-sqlx = { version = "0.4.2", default-features = false, features = [ "runtime-tokio", "macros", "postgres", "migrate" ] }
+sqlx = { version = "0.4.2", default-features = false, features = [ "runtime-actix-native-tls", "macros", "postgres", "migrate" ] }
 # Config
 config = { version = "0.10.1", features = ["yaml"] }
 # Lazy evaluation
