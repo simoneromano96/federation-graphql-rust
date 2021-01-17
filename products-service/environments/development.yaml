@@ -2,7 +2,7 @@
 debug: true
 # Redis
 redis:
-  url: redis://127.0.0.1:6379
+  url: 127.0.0.1:6379
 # Session
 session:
   secret: N7WoK3mG7lSb0CpK8UhAabUZNi27n5ub
@@ -14,7 +14,7 @@ server:
   port: 4002
 # Authorization server
 authorization:
-  url: http://127.0.0.1:3999/api/v1/authorization/is-authorized
+  url: https://acpm.graphql.simoneromano.eu/api/v1/authorization/is-authorized
   skip: false
   auth:
     username: "products-service"
