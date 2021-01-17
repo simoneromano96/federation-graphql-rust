@@ -38,17 +38,17 @@ steps:
       config:
         from_secret: docker_auth_config
 
-  - name: postgres-build
-    image: plugins/docker
-    settings:
-      registry: ghcr.io
-      username: simoneromano96
-      password: 
-        from_secret: token
-      repo: ghcr.io/simoneromano96/federation-graphql-rust/acpm-postgres
-      context: ./acpm-service/.docker
-      dockerfile: ./acpm-service/.docker/postgres.dockerfile
-      auto_tag: true
+#  - name: postgres-build
+#    image: plugins/docker
+#    settings:
+#      registry: ghcr.io
+#      username: simoneromano96
+#      password: 
+#        from_secret: token
+#      repo: ghcr.io/simoneromano96/federation-graphql-rust/acpm-postgres
+#      context: ./acpm-service/.docker
+#      dockerfile: ./acpm-service/.docker/postgres.dockerfile
+#      auto_tag: true
 
 ---
 kind: pipeline
