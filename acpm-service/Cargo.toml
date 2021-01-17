@@ -16,7 +16,7 @@ serde = "1.0.119"
 # OpenAPI specification with Actix
 paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features = ["actix3-nightly"] }
 # Authorization enforcer policies with Adapter for SQLx
-sqlx-adapter = { git = "https://github.com/simoneromano96/sqlx-adapter", branch = "upgrade-sqlx", default-features = false, features = ["postgres", "runtime-tokio-native-tls", "offline"] }
+sqlx-adapter = { git = "https://github.com/simoneromano96/sqlx-adapter", branch = "upgrade-sqlx", default-features = false, features = ["postgres", "runtime-actix-native-tls", "offline"] }
 # SQLx
 sqlx = { version = "0.4.2", default-features = false, features = [ "runtime-tokio", "macros", "postgres", "migrate" ] }
 # Config
