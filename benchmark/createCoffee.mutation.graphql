@@ -1,0 +1,9 @@
+mutation createCoffee($name: String!){
+  createCoffee(input: {name: $name, price: 1.0, imageUrl: "https://google.com"}){
+    id
+    name
+    price
+    imageUrl
+    description
+  }
+}
