@@ -1,60 +1,34 @@
-- name: coffees
-  # response timeout
-  timeout: 1s
-
-  # the benchmarks are first run for this duration and the results are ignored
-  warmup_duration: 60
-
-  # the duration of each benchmark
-  duration: 300
-
-  # number of open connections to the server
-  open_connections: 1000
-
-  candidates:
-  - name: federation-mercurius-rust
-    url: https://gateway.graphql.simoneromano.eu/graphql
-    query: Coffees
-    queries_file: queries.graphql
-  rps:
-  - 200
-  - 400
-  - 600
-  - 800
-  - 1000
+#- name: coffees
+#  # response timeout
+#  timeout: 1s
+#
+#  # the benchmarks are first run for this duration and the results are ignored
+#  warmup_duration: 60
+#
+#  # the duration of each benchmark
+#  duration: 300
+#
+#  # number of open connections to the server
+#  open_connections: 1000
+#
+#  candidates:
+#  - name: federation-mercurius-rust
+#    url: https://gateway.graphql.simoneromano.eu/graphql
+#    query: Coffees
+#    queries_file: queries.graphql
+#  rps:
+#  - 200
+#  - 400
+#  - 600
+#  - 800
+#  - 1000
 
 url: 'https://gateway.graphql.simoneromano.eu/graphql'
 queries:
     # Name: Unique name for the query
-  - name: AllCoffees
-    # Tools: List of benchmarking tools to run: ['autocannon', 'k6', 'wrk2']
-    tools: ['autocannon', 'k6', 'wrk2']
-    # Execution Strategy: the type of the benchmark to run. Options are: 
-    # REQUESTS_PER_SECOND: Fixed duration, fixed rps. Example parameters:
-    #   duration: 10s
-    #   rps: 500
-    # FIXED_REQUEST_NUMBER: Complete requests as fast as possible, no duration. Example parameters:
-    #   requests: 10000
-    # MAX_REQUESTS_IN_DURATION: Make as many requests as possible in duration. Example parameters:
-    #   duration: 10s
-    # MULTI_STAGE: (K6 only currently) Several stages of REQUESTS_PER_SECOND benchmark. Example parameters:
-    #   initial_rps: 0
-    #   stages:
-    #     - duration: 5s
-    #       target: 100
-    #     - duration: 10s
-    #       target: 1000
-    # CUSTOM: Pass completely custom options to each tool (see full API spec for all supported options, very large)
-    execution_strategy: REQUESTS_PER_SECOND
-    rps: 2000
-    duration: 10s
-    connections: 50
-    query: Coffees
-    queries_file: coffee.query.graphql
-    # Name: Unique name for the query
   - name: CreateCoffee
     # Tools: List of benchmarking tools to run: ['autocannon', 'k6', 'wrk2']
-    tools: ['autocannon', 'k6', 'wrk2']
+    tools: ['autocannon', 'k6']
     # Execution Strategy: the type of the benchmark to run. Options are: 
     # REQUESTS_PER_SECOND: Fixed duration, fixed rps. Example parameters:
     #   duration: 10s
@@ -71,11 +45,38 @@ queries:
     #     - duration: 10s
     #       target: 1000
     # CUSTOM: Pass completely custom options to each tool (see full API spec for all supported options, very large)
-    execution_strategy: REQUESTS_PER_SECOND
-    rps: 2000
-    duration: 10s
-    connections: 50
+    execution_strategy: FIXED_REQUEST_NUMBER
+    requests: 100000
+    connections: 10000
     query: createCoffee
     queries_file: createCoffee.mutation.graphql
     variables:
-      name: { start: 0, end: 2000 }
+      name: { start: 0, end: 1000000 }
+    # Name: Unique name for the query
+  - name: AllCoffees
+    # Tools: List of benchmarking tools to run: ['autocannon', 'k6', 'wrk2']
+    tools: ['autocannon', 'k6']
+    # Execution Strategy: the type of the benchmark to run. Options are: 
+    # REQUESTS_PER_SECOND: Fixed duration, fixed rps. Example parameters:
+    #   duration: 10s
+    #   rps: 500
+    # FIXED_REQUEST_NUMBER: Complete requests as fast as possible, no duration. Example parameters:
+    #   requests: 10000
+    # MAX_REQUESTS_IN_DURATION: Make as many requests as possible in duration. Example parameters:
+    #   duration: 10s
+    # MULTI_STAGE: (K6 only currently) Several stages of REQUESTS_PER_SECOND benchmark. Example parameters:
+    #   initial_rps: 0
+    #   stages:
+    #     - duration: 5s
+    #       target: 100
+    #     - duration: 10s
+    #       target: 1000
+    # CUSTOM: Pass completely custom options to each tool (see full API spec for all supported options, very large)
+    # execution_strategy: REQUESTS_PER_SECOND
+    # rps: 2000
+    # duration: 10s
+    execution_strategy: FIXED_REQUEST_NUMBER
+    requests: 100000
+    connections: 10000
+    query: Coffees
+    queries_file: coffee.query.graphql
