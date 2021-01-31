@@ -12,11 +12,11 @@ actix-web = { version = "3.3.2", default-features = false }
 # Basic auth
 actix-web-httpauth = "0.5.0"
 # Serialization/Deserialization
-serde = "1.0.119"
+serde = "1.0.123"
 # OpenAPI specification with Actix
 paperclip = { git = "https://github.com/wafflespeanut/paperclip.git", features = ["actix3-nightly"] }
 # Authorization enforcer policies with Adapter for SQLx
-sqlx-adapter = { git = "https://github.com/simoneromano96/sqlx-adapter", branch = "upgrade-sqlx", default-features = false, features = ["postgres", "runtime-actix-native-tls", "offline"] }
+sqlx-adapter = { git = "https://github.com/casbin-rs/sqlx-adapter", default-features = false, features = ["postgres", "runtime-actix-native-tls", "offline"] }
 # SQLx
 sqlx = { version = "0.4.2", default-features = false, features = [ "runtime-actix-native-tls", "macros", "postgres", "migrate" ] }
 # Config
@@ -24,5 +24,5 @@ config = { version = "0.10.1", features = ["yaml"] }
 # Lazy evaluation
 lazy_static = "1.4.0"
 # Logging
-log = "0.4.13"
+log = "0.4.14"
 pretty_env_logger = "0.4.0"
