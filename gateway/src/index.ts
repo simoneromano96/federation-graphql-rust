@@ -2,8 +2,8 @@ import fastify from "fastify"
 import mercurius from "mercurius"
 import { stitchSchemas } from "@graphql-tools/stitch"
 import { loadSchema } from "@graphql-tools/load"
-import WebSocket from "ws"
 import { UrlLoader } from "@graphql-tools/url-loader"
+import WebSocket from "ws"
 import config from "./config"
 
 interface Service {
